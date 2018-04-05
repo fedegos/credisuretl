@@ -1,0 +1,77 @@
+# links
+https://www.datacamp.com/community/tutorials/python-excel-tutorial
+
+http://openpyxl.readthedocs.io/en/stable/styles.html?highlight=font
+
+https://automatetheboringstuff.com/chapter12/
+
+http://www.correlatedsolutions.com/support/index.php?/Knowledgebase/Article/View/85/1/running-python-scripts-from-anywhere-under-windows
+
+
+# read
+wb = openpyxl.load_workbook(filename = 'inputs/test.xlsx')
+
+# get value
+ws['A1'].value
+
+# assign value
+ws['A1'] = "Hola mundo"
+
+# save
+wb.save(filename = 'inputs/test.xlsx')
+
+# working with sheet
+>>> wb.get_sheet_names()
+['Sheet1', 'Sheet2', 'Sheet3']
+>>> sheet = wb.get_sheet_by_name('Sheet3')
+<Worksheet "Sheet3">
+
+>>> wb.create_sheet()
+<Worksheet "Sheet1">
+
+>>> wb.create_sheet(index=0, title='First Sheet')
+<Worksheet "First Sheet">
+
+>>> wb.remove_sheet(wb.get_sheet_by_name('Middle Sheet'))
+
+# styles
+>>> from openpyxl.styles import colors
+>>> from openpyxl.styles import Font, Color
+...
+>>> a1 = ws['A1']
+>>> d4 = ws['D4']
+>>> ft = Font(color=colors.RED)
+>>> a1.font = ft
+>>> d4.font = ft
+
+# loop rows
+
+Loop through the rows and update the prices.
+
+for rowNum in range(2, sheet.max_row):  # skip the first row
+    produceName = sheet.cell(row=rowNum, column=1).value
+        if produceName in PRICE_UPDATES:
+            sheet.cell(row=rowNum, column=2).value = PRICE_UPDATES[produceName]
+
+wb.save('updatedProduceSales.xlsx')
+
+# width and height
+>>> sheet.row_dimensions[1].height = 70
+>>> sheet.column_dimensions['B'].width = 20
+
+# merge and unmerge
+sheet.merge_cells('C5:D5')
+sheet.unmerge_cells('A1:D3')
+
+# freeze
+sheet.freeze_panes = 'A2'
+
+
+
+# histórico vs nuevo
+#               cuenta - persona - orden - (histórico: cuota de plan | nuevos: plan - monto cuota)
+# histórico:    D-F-12241-10 de 12
+# nuevo:        C-E-01001-6-2900
+
+# for customer in customers:
+#    print(customer)
