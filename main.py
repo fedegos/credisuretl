@@ -2,6 +2,7 @@ import openpyxl
 import time
 # import json
 from datetime import datetime
+from functools import reduce
 
 import tableextraction
 import exceladapter
@@ -166,6 +167,7 @@ for row_unpacker in accounts_to_collect_unpacker.read_rows(2):
 
     collections_for_order = []
     last_collection_date = "Sin cobranza previa"
+    current_payment_number = 1
 
     if sales_order and sales_order in collections:
         collections_for_order = collections[sales_order]
@@ -173,19 +175,28 @@ for row_unpacker in accounts_to_collect_unpacker.read_rows(2):
     if sales_order and len(collections_for_order) > 0:
         last_collection_date = sorted(collections_for_order, key=lambda x: x['date'], reverse=True)[0]['date']
 
+        if version == NUEVO:
+            previous_payments = reduce(lambda x, y: x + y, list(map(lambda x: x['payments'], collections_for_order)),
+                                       [])
+            previous_payments_without_advances_str = filter(lambda x: x != 'E', previous_payments)
+            previous_payments_without_advances = [int(x) for x in previous_payments_without_advances_str]
+            current_payment_number = max(previous_payments_without_advances, default=0) + 1
+
     if version == HISTORICO:
-        payment_number, plan = list_of_codes[3].split(" de ")
+        current_payment_number, plan = list_of_codes[3].split(" de ")
         plan = int(plan)
         payment_amount = float(row_unpacker.get_value_at(8))
         total_purchase_value = payment_amount * int(plan)
-        debt_balance = "HISTÓRICO"
+
+        debt_balance = ""
+        advance_payment = ""
+
     else:
         if len(list_of_codes) < 5:
             error = "Cuenta a cobrar sin valor de cuota. Documento: %s - Descripción: %s" % (document, raw_code)
             errors.append(error)
             continue
 
-        # payment_number = TODO
         plan = int(list_of_codes[3])
         payment_amount = float(list_of_codes[4])
         debt_balance = row_unpacker.get_value_at(8)
@@ -202,6 +213,9 @@ for row_unpacker in accounts_to_collect_unpacker.read_rows(2):
 
     last_due_date = calendar_ops.add_months(due_date, plan)
 
+    overdue_balance = ""
+    past_due_debt = ""
+
     if version == NUEVO:
         due_dates = calendar_ops.list_of_due_date(due_date, plan)
         #  i = next(i + 1 for i,v in enumerate(l) if v > 0)
@@ -209,28 +223,13 @@ for row_unpacker in accounts_to_collect_unpacker.read_rows(2):
         past_due_debt = advance_payment + (due_payments * payment_amount)
         overdue_balance = past_due_debt - paid_amount
 
-        # print(overdue_balance)
-        '''
-        print("Documento:", document)
-        print("Primer vencimiento:", due_date, " Plan:", plan, " Pagos Vencidos:", due_payments)
-        print("Valor de venta:", total_purchase_value, " Valor de cuota:", payment_amount," Pagó:", paid_amount, " Saldo vencido:", overdue_balance)
-        print(" *** ")        
-        
-        
-        if (overdue_balance < 0):
-            print("Pagó de más:", document, "Monto excedente: ", overdue_balance)
-            print("Primer vencimiento:", due_date, " Plan:", plan, " Pagos Vencidos:", due_payments)
-            print("Valor de venta:", total_purchase_value, " Valor de cuota:", payment_amount, " Pagó:", paid_amount,
-                  " Saldo vencido:", overdue_balance)
-            print(" *** ")
-            # print("due payments", due_payments, "amount", payment_amount)
-            # print("total purchase", total_purchase_value, "debt balance", debt_balance)
-        '''
+    if isinstance(last_collection_date, datetime):
+        last_collection_date = last_collection_date.strftime("%d/%m/%Y")
 
     account_to_collect['version'] = version
 
     account_to_collect['document'] = document
-    account_to_collect['due_date'] = due_date
+    account_to_collect['due_date'] = due_date.strftime("%d/%m/%Y")
 
     account_to_collect['customer'] = customer
     account_to_collect['city'] = city
@@ -241,12 +240,73 @@ for row_unpacker in accounts_to_collect_unpacker.read_rows(2):
     account_to_collect['order'] = sales_order
 
     account_to_collect['last_collection'] = last_collection_date
-
     account_to_collect['total_purchase_value'] = total_purchase_value
+    account_to_collect['plan'] = plan
+    account_to_collect['advance_payment'] = advance_payment
+
+    account_to_collect['debt_balance'] = debt_balance
+
+    account_to_collect['current_payment'] = current_payment_number
+    account_to_collect['payment'] = payment_amount
+    account_to_collect['past_due_debt'] = past_due_debt
+    account_to_collect['overdue_balance'] = overdue_balance
 
     accounts_to_collect.append(account_to_collect)
 
+print(accounts_to_collect)
 print(errors)
+
+# crear excel de cobranzas
+collections_filename = 'outputs/cuentas_a_cobrar_' + time.strftime("%Y%m%d-%H%M%S") + '.xlsx'
+collections_excelwriter = exceladapter.ExcelWriter(collections_filename)
+generated_sheet = collections_excelwriter.create_sheet('Cobranzas')
+
+collections_builder = excelbuilder.BasicBuilder(generated_sheet, accounts_to_collect)
+
+collections_builder.add_header("A", "Versión")
+collections_builder.add_header("B", "Documento")
+collections_builder.add_header("C", "Fecha de Vencimiento")
+
+collections_builder.add_header("D", "Cliente")
+collections_builder.add_header("E", "Ciudad")
+collections_builder.add_header("F", "Dirección")
+
+collections_builder.add_header("G", "Cuenta")
+collections_builder.add_header("H", "Person")
+collections_builder.add_header("I", "Orden de Compra")
+
+collections_builder.add_header("J", "Última Cobranza")
+collections_builder.add_header("K", "Valor de compra")
+collections_builder.add_header("L", "Cuotas")
+collections_builder.add_header("M", "Anticipo")
+
+collections_builder.add_header("N", "Saldo Total")
+collections_builder.add_header("O", "Cuota a pagar")
+collections_builder.add_header("P", "Valor de cuota")
+collections_builder.add_header("Q", "Saldo vencido")
+collections_builder.add_header("R", "Deuda impaga a la fecha")
+
+collections_builder.map_column("A", "version")
+collections_builder.map_column("B", "document")
+collections_builder.map_column("C", "due_date")
+collections_builder.map_column("D", "customer")
+collections_builder.map_column("E", "city")
+collections_builder.map_column("F", "address")
+collections_builder.map_column("G", "account")
+collections_builder.map_column("H", "person")
+collections_builder.map_column("I", "order")
+collections_builder.map_column("J", "last_collection")
+collections_builder.map_column("K", "total_purchase_value")
+collections_builder.map_column("L", "plan")
+collections_builder.map_column("M", "advance_payment")
+collections_builder.map_column("N", "debt_balance")
+collections_builder.map_column("O", "current_payment")
+collections_builder.map_column("P", "payment")
+collections_builder.map_column("Q", "past_due_debt")
+collections_builder.map_column("R", "overdue_balance")
+
+collections_builder.build()
+collections_excelwriter.save()
 
 ## columnas
 
