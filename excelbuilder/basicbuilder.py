@@ -23,6 +23,10 @@ class BasicBuilder:
     def map_column(self, column_letter, item_key, mapper=null_item_mapper):
         self.column_mappings[column_letter] = {'key': item_key, 'mapper': mapper}
 
+    def configure_column(self, column_letter, title, item_key):
+        self.add_header(column_letter, title)
+        self.map_column(column_letter, item_key)
+
     def build(self):
         self.__build_headers()
         self.__build_data_rows()
