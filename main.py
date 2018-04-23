@@ -28,6 +28,28 @@ def get_version_from_code(raw_code):
     return NUEVO
 
 
+def configure_sheet(sheet_builder):
+    sheet_builder.configure_column("A", "Ciudad", 'city')
+    sheet_builder.configure_column("B", "Cliente", 'customer')
+    sheet_builder.configure_column("C", "Dirección", 'address')
+    sheet_builder.configure_column("D", "Teléfono", 'phone')
+
+    sheet_builder.configure_column("E", "Fecha de Compra", 'date_of_purchase')
+    sheet_builder.configure_column("F", "Fecha de Vencimiento", 'due_date')
+    sheet_builder.configure_column("G", "Valor de compra", 'total_purchase_value')
+
+    sheet_builder.configure_column("H", "Orden de Compra", 'order')
+    sheet_builder.configure_column("I", "Última Cobranza", 'last_collection')
+
+    sheet_builder.configure_column("J", "Cuotas", 'plan')
+    sheet_builder.configure_column("K", "Saldo Total", 'debt_balance')
+    sheet_builder.configure_column("L", "Cuota a pagar", 'current_payment')
+    sheet_builder.configure_column("M", "Valor de cuota", 'payment')
+    sheet_builder.configure_column("N", "Saldo vencido", 'past_due_debt')  # revisar
+    sheet_builder.configure_column("O", "Deuda impaga a la fecha", 'overdue_balance')
+
+    sheet_builder.configure_column("P", "Monto total a cobrar", 'amount_to_collect')
+
 calendar_ops = dateintelligence.CalendarOperations()
 
 errors = []
@@ -257,6 +279,12 @@ for row_unpacker in accounts_to_collect_unpacker.read_rows(2):
 
     account_to_collect['account'] = collection_account
     account_to_collect['person'] = collection_person
+
+    '''
+    if collection_account == "D":
+        print(collection_account, collection_person)
+    '''
+
     account_to_collect['order'] = sales_order
 
     account_to_collect['last_collection'] = last_collection_date
@@ -286,93 +314,39 @@ collections_filename = 'outputs/cuentas_a_cobrar_' + time.strftime("%Y%m%d-%H%M%
 collections_excelwriter = exceladapter.ExcelWriter(collections_filename)
 
 generated_sheet_C = collections_excelwriter.create_sheet('Créditos')
-generated_sheet_D = collections_excelwriter.create_sheet('Débitos')
+generated_sheet_DH = collections_excelwriter.create_sheet('Débitos Horacio')
+generated_sheet_DF = collections_excelwriter.create_sheet('Débitos Facundo')
 generated_sheet_I = collections_excelwriter.create_sheet('ICBC')
 
-print(accounts_to_collect['C'])
+# print(accounts_to_collect['C'])
 
 sorted_accounts_C = sorted(accounts_to_collect['C'],
                            key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
 
 collections_builder_C = excelbuilder.BasicBuilder(generated_sheet_C, sorted_accounts_C)
-
-collections_builder_C.configure_column("A", "Ciudad", 'city')
-collections_builder_C.configure_column("B", "Cliente", 'customer')
-collections_builder_C.configure_column("C", "Dirección", 'address')
-collections_builder_C.configure_column("D", "Teléfono", 'phone')
-
-collections_builder_C.configure_column("E", "Fecha de Compra", 'date_of_purchase')
-collections_builder_C.configure_column("F", "Fecha de Vencimiento", 'due_date')
-collections_builder_C.configure_column("G", "Valor de compra", 'total_purchase_value')
-
-collections_builder_C.configure_column("H", "Orden de Compra", 'order')
-collections_builder_C.configure_column("I", "Última Cobranza", 'last_collection')
-
-collections_builder_C.configure_column("J", "Cuotas", 'plan')
-collections_builder_C.configure_column("K", "Saldo Total", 'debt_balance')
-collections_builder_C.configure_column("L", "Cuota a pagar", 'current_payment')
-collections_builder_C.configure_column("M", "Valor de cuota", 'payment')
-collections_builder_C.configure_column("N", "Saldo vencido", 'past_due_debt')  # revisar
-collections_builder_C.configure_column("O", "Deuda impaga a la fecha", 'overdue_balance')
-
-collections_builder_C.configure_column("P", "Monto total a cobrar", 'amount_to_collect')
-
+configure_sheet(collections_builder_C)
 collections_builder_C.build()
 
 sorted_accounts_D = sorted(accounts_to_collect['D'],
                            key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
 
-collections_builder_D = excelbuilder.BasicBuilder(generated_sheet_D, sorted_accounts_D)
+sorted_accounts_D_H = filter(lambda x: x['person'] == 'H', sorted_accounts_D)
+sorted_accounts_D_F = filter(lambda x: x['person'] == 'F', sorted_accounts_D)
 
-collections_builder_D.configure_column("A", "Ciudad", 'city')
-collections_builder_D.configure_column("B", "Cliente", 'customer')
-collections_builder_D.configure_column("C", "Dirección", 'address')
-collections_builder_D.configure_column("D", "Teléfono", 'phone')
+collections_builder_DH = excelbuilder.BasicBuilder(generated_sheet_DH, sorted_accounts_D_H)
+configure_sheet(collections_builder_DH)
+collections_builder_DH.build()
 
-collections_builder_D.configure_column("E", "Fecha de Compra", 'date_of_purchase')
-collections_builder_D.configure_column("F", "Fecha de Vencimiento", 'due_date')
-collections_builder_D.configure_column("G", "Valor de compra", 'total_purchase_value')
+collections_builder_DF = excelbuilder.BasicBuilder(generated_sheet_DF, sorted_accounts_D_F)
+configure_sheet(collections_builder_DF)
+collections_builder_DF.build()
 
-collections_builder_D.configure_column("H", "Orden de Compra", 'order')
-collections_builder_D.configure_column("I", "Última Cobranza", 'last_collection')
-
-collections_builder_D.configure_column("J", "Cuotas", 'plan')
-collections_builder_D.configure_column("K", "Saldo Total", 'debt_balance')
-collections_builder_D.configure_column("L", "Cuota a pagar", 'current_payment')
-collections_builder_D.configure_column("M", "Valor de cuota", 'payment')
-collections_builder_D.configure_column("N", "Saldo vencido", 'past_due_debt')  # revisar
-collections_builder_D.configure_column("O", "Deuda impaga a la fecha", 'overdue_balance')
-
-collections_builder_D.configure_column("P", "Monto total a cobrar", 'amount_to_collect')
-
-collections_builder_D.build()
 
 sorted_accounts_I = sorted(accounts_to_collect['I'],
                            key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
 
 collections_builder_I = excelbuilder.BasicBuilder(generated_sheet_I, sorted_accounts_I)
-
-collections_builder_I.configure_column("A", "Ciudad", 'city')
-collections_builder_I.configure_column("B", "Cliente", 'customer')
-collections_builder_I.configure_column("C", "Dirección", 'address')
-collections_builder_I.configure_column("D", "Teléfono", 'phone')
-
-collections_builder_I.configure_column("E", "Fecha de Compra", 'date_of_purchase')
-collections_builder_I.configure_column("F", "Fecha de Vencimiento", 'due_date')
-collections_builder_I.configure_column("G", "Valor de compra", 'total_purchase_value')
-
-collections_builder_I.configure_column("H", "Orden de Compra", 'order')
-collections_builder_I.configure_column("I", "Última Cobranza", 'last_collection')
-
-collections_builder_I.configure_column("J", "Cuotas", 'plan')
-collections_builder_I.configure_column("K", "Saldo Total", 'debt_balance')
-collections_builder_I.configure_column("L", "Cuota a pagar", 'current_payment')
-collections_builder_I.configure_column("M", "Valor de cuota", 'payment')
-collections_builder_I.configure_column("N", "Saldo vencido", 'past_due_debt')  # revisar
-collections_builder_I.configure_column("O", "Deuda impaga a la fecha", 'overdue_balance')
-
-collections_builder_I.configure_column("P", "Monto total a cobrar", 'amount_to_collect')
-
+configure_sheet(collections_builder_I)
 collections_builder_I.build()
 
 collections_excelwriter.save()
