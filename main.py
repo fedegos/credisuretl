@@ -16,11 +16,12 @@ import dateintelligence
 NUEVO = "nuevo"
 HISTORICO = "histórico"
 
+calendar_ops = dateintelligence.CalendarOperations()
+
+# calendar
 current_date = datetime.now()
 first_day_of_current_month = datetime(current_date.year, current_date.month, 1)
-# last_date_of_month = datetime(current_date.year,current_date.month,1) + relativedelta(months=1,days=-1)
-# TODO: Generalizar
-last_date_of_month = datetime(2018, 4, 30)
+last_date_of_month = calendar_ops.last_day_of_month(current_date)
 
 def get_version_from_code(raw_code):
     if "de" in raw_code.split("-")[3]:
@@ -28,29 +29,29 @@ def get_version_from_code(raw_code):
     return NUEVO
 
 
-def configure_sheet(sheet_builder):
-    sheet_builder.configure_column("A", "Ciudad", 'city')
-    sheet_builder.configure_column("B", "Cliente", 'customer')
-    sheet_builder.configure_column("C", "Dirección", 'address')
-    sheet_builder.configure_column("D", "Teléfono", 'phone')
+def get_columns_configuration():
+    config_list = []
+    config_list.append(("A", "Ciudad", 'city'))
+    config_list.append(("B", "Cliente", 'customer'))
+    config_list.append(("C", "Dirección", 'address'))
+    config_list.append(("D", "Teléfono", 'phone'))
 
-    sheet_builder.configure_column("E", "Fecha de Compra", 'date_of_purchase')
-    sheet_builder.configure_column("F", "Fecha de Vencimiento", 'due_date')
-    sheet_builder.configure_column("G", "Valor de compra", 'total_purchase_value')
+    config_list.append(("E", "Fecha de Compra", 'date_of_purchase'))
+    config_list.append(("F", "Fecha de Vencimiento", 'due_date'))
+    config_list.append(("G", "Valor de compra", 'total_purchase_value'))
 
-    sheet_builder.configure_column("H", "Orden de Compra", 'order')
-    sheet_builder.configure_column("I", "Última Cobranza", 'last_collection')
+    config_list.append(("H", "Orden de Compra", 'order'))
+    config_list.append(("I", "Última Cobranza", 'last_collection'))
 
-    sheet_builder.configure_column("J", "Cuotas", 'plan')
-    sheet_builder.configure_column("K", "Saldo Total", 'debt_balance')
-    sheet_builder.configure_column("L", "Cuota a pagar", 'current_payment')
-    sheet_builder.configure_column("M", "Valor de cuota", 'payment')
-    sheet_builder.configure_column("N", "Saldo vencido", 'past_due_debt')  # revisar
-    sheet_builder.configure_column("O", "Deuda impaga a la fecha", 'overdue_balance')
+    config_list.append(("J", "Cuotas", 'plan'))
+    config_list.append(("K", "Saldo Total", 'debt_balance'))
+    config_list.append(("L", "Cuota a pagar", 'current_payment'))
+    config_list.append(("M", "Valor de cuota", 'payment'))
+    config_list.append(("N", "Saldo vencido", 'past_due_debt'))  # revisar
+    config_list.append(("O", "Deuda impaga a la fecha", 'overdue_balance'))
 
-    sheet_builder.configure_column("P", "Monto total a cobrar", 'amount_to_collect')
-
-calendar_ops = dateintelligence.CalendarOperations()
+    config_list.append(("P", "Monto total a cobrar", 'amount_to_collect'))
+    return config_list
 
 errors = []
 customers = {}
@@ -141,7 +142,8 @@ for row_unpacker in bills_unpacker.read_rows(2):
     sales_order = raw_code.split("-")[2]
 
     if not sales_order:
-        errors.append("Factura sin orden de compra. Documento: %s" % (document))
+        error = "Factura sin orden de compra. Documento: %s" % (document)
+        errors.append(error)
         continue
 
     if len(sales_order) != 5:
@@ -253,13 +255,6 @@ for row_unpacker in accounts_to_collect_unpacker.read_rows(2):
         past_due_debt = advance_payment + (due_payments * payment_amount)
         overdue_balance = past_due_debt - paid_amount
 
-        '''
-        if customer == "HUENTEN JORGE":
-            print('due payments', due_payments, "plan", plan, "due_dates", due_dates)
-            print('adelanto', advance_payment, "cuota", payment_amount)
-            print('paid amount', paid_amount, 'past due debt', past_due_debt, 'overdue', overdue_balance)
-        '''
-
     if isinstance(last_collection_date, datetime):
         last_collection_date = last_collection_date.strftime("%d/%m/%Y")
 
@@ -280,11 +275,6 @@ for row_unpacker in accounts_to_collect_unpacker.read_rows(2):
     account_to_collect['account'] = collection_account
     account_to_collect['person'] = collection_person
 
-    '''
-    if collection_account == "D":
-        print(collection_account, collection_person)
-    '''
-
     account_to_collect['order'] = sales_order
 
     account_to_collect['last_collection'] = last_collection_date
@@ -304,50 +294,42 @@ for row_unpacker in accounts_to_collect_unpacker.read_rows(2):
     if not account_to_collect['city'] or not account_to_collect['customer']:
         print("NOT CITY OR CUSTOMER", account_to_collect['city'], account_to_collect['customer'])
 
+    if customer == "ALMAZA YOLANDA DEL CARMEN":
+        print(accounts_to_collect)
+
     accounts_to_collect[collection_account].append(account_to_collect)
 
 for error in errors:
-    print("WARNING:", error)
+    print("ADVERTENCIA:", error)
+
+sorted_accounts_C = sorted(accounts_to_collect['C'],
+                           key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
+
+sorted_accounts_D = sorted(accounts_to_collect['D'],
+                           key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
+sorted_accounts_D_H = filter(lambda x: x['person'] == 'H', sorted_accounts_D)
+sorted_accounts_D_F = filter(lambda x: x['person'] == 'F', sorted_accounts_D)
+
+sorted_accounts_I = sorted(accounts_to_collect['I'],
+                           key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
 
 # crear excel de cobranzas
 collections_filename = 'outputs/cuentas_a_cobrar_' + time.strftime("%Y%m%d-%H%M%S") + '.xlsx'
 collections_excelwriter = exceladapter.ExcelWriter(collections_filename)
 
-generated_sheet_C = collections_excelwriter.create_sheet('Créditos')
-generated_sheet_DH = collections_excelwriter.create_sheet('Débitos Horacio')
-generated_sheet_DF = collections_excelwriter.create_sheet('Débitos Facundo')
-generated_sheet_I = collections_excelwriter.create_sheet('ICBC')
+columns_config = get_columns_configuration()
 
-# print(accounts_to_collect['C'])
+collections_builder_C = excelbuilder.BasicBuilder(sorted_accounts_C, columns_config)
+collections_excelwriter.build_sheet("Créditos", collections_builder_C.build_sheet_data())
 
-sorted_accounts_C = sorted(accounts_to_collect['C'],
-                           key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
+collections_builder_DH = excelbuilder.BasicBuilder(sorted_accounts_D_H, columns_config)
+collections_excelwriter.build_sheet('Débitos Horacio', collections_builder_DH.build_sheet_data())
 
-collections_builder_C = excelbuilder.BasicBuilder(generated_sheet_C, sorted_accounts_C)
-configure_sheet(collections_builder_C)
-collections_builder_C.build()
+collections_builder_DF = excelbuilder.BasicBuilder(sorted_accounts_D_F, columns_config)
+collections_excelwriter.build_sheet('Débitos Facundo', collections_builder_DF.build_sheet_data())
 
-sorted_accounts_D = sorted(accounts_to_collect['D'],
-                           key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
-
-sorted_accounts_D_H = filter(lambda x: x['person'] == 'H', sorted_accounts_D)
-sorted_accounts_D_F = filter(lambda x: x['person'] == 'F', sorted_accounts_D)
-
-collections_builder_DH = excelbuilder.BasicBuilder(generated_sheet_DH, sorted_accounts_D_H)
-configure_sheet(collections_builder_DH)
-collections_builder_DH.build()
-
-collections_builder_DF = excelbuilder.BasicBuilder(generated_sheet_DF, sorted_accounts_D_F)
-configure_sheet(collections_builder_DF)
-collections_builder_DF.build()
-
-
-sorted_accounts_I = sorted(accounts_to_collect['I'],
-                           key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
-
-collections_builder_I = excelbuilder.BasicBuilder(generated_sheet_I, sorted_accounts_I)
-configure_sheet(collections_builder_I)
-collections_builder_I.build()
+collections_builder_I = excelbuilder.BasicBuilder(sorted_accounts_I, columns_config)
+collections_excelwriter.build_sheet('ICBC', collections_builder_I.build_sheet_data())
 
 collections_excelwriter.save()
 

@@ -3,13 +3,15 @@ def null_item_mapper(item, key):
 
 
 class BasicBuilder:
-    def __init__(self, sheet, data_list):
-        self.sheet = sheet
+    def __init__(self, data_list, columns_configuration=None):
         self.data_list = data_list
         self.headers = []
         self.column_mappings = {}
         self.header_row = 1
         self.first_data_row = 2
+
+        if columns_configuration:
+            self.configure_columns(columns_configuration)
 
     def set_header_row(self, header_row):
         self.header_row = header_row
@@ -27,16 +29,30 @@ class BasicBuilder:
         self.add_header(column_letter, title)
         self.map_column(column_letter, item_key)
 
-    def build(self):
-        self.__build_headers()
-        self.__build_data_rows()
+    def configure_columns(self, list_of_columns):
+        for column_fonfiguration in list_of_columns:
+            self.configure_column(column_fonfiguration[0], column_fonfiguration[1], column_fonfiguration[2])
+
+    def build_sheet_data(self):
+        sheet_data = {}
+
+        sheet_data.update(self.__build_headers())
+        sheet_data.update(self.__build_data_rows())
+
+        return sheet_data
 
     def __build_headers(self):
+        headers_map = {}
+
         for header in self.headers:
             cell = self.__get_cell_location(header['column_letter'], self.header_row)
-            self.sheet[cell] = header['title']
+            headers_map[cell] = header['title']
+
+        return headers_map
 
     def __build_data_rows(self):
+        rows_map = {}
+
         for index, item in enumerate(self.data_list):
             row_num = str(index + self.first_data_row)
 
@@ -46,7 +62,9 @@ class BasicBuilder:
                 item_mapper = item_key_and_mapper['mapper']
                 item_key = item_key_and_mapper['key']
 
-                self.sheet[cell] = item_mapper(item, item_key)
+                rows_map[cell] = item_mapper(item, item_key)
+
+        return rows_map
 
     def __get_cell_location(self, header, row):
         return ("%s%s" % (header, row))
