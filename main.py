@@ -204,7 +204,8 @@ for row_unpacker in accounts_to_collect_unpacker.read_rows(2):
         collections_for_order = collections[sales_order]
 
     if sales_order and len(collections_for_order) > 0:
-        last_collection_date = sorted(collections_for_order, key=lambda x: x['date'], reverse=True)[0]['date']
+        last_collection_date = sorted(collections_for_order, key=lambda x: x['date'], reverse=True)[0]['date'].strftime(
+            "%d/%m/%Y")
 
         if version == NUEVO:
             previous_payments = reduce(lambda x, y: x + y, list(map(lambda x: x['payments'], collections_for_order)),
@@ -254,9 +255,6 @@ for row_unpacker in accounts_to_collect_unpacker.read_rows(2):
         due_payments = next((plan - i for i, v in enumerate(reversed(due_dates)) if v < first_day_of_current_month), 0)
         past_due_debt = advance_payment + (due_payments * payment_amount)
         overdue_balance = past_due_debt - paid_amount
-
-    if isinstance(last_collection_date, datetime):
-        last_collection_date = last_collection_date.strftime("%d/%m/%Y")
 
     account_to_collect['version'] = version
 
