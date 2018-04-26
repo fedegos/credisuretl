@@ -30,8 +30,8 @@ class BasicBuilder:
         self.map_column(column_letter, item_key)
 
     def configure_columns(self, list_of_columns):
-        for column_fonfiguration in list_of_columns:
-            self.configure_column(column_fonfiguration[0], column_fonfiguration[1], column_fonfiguration[2])
+        for column_configuration in list_of_columns:
+            self.configure_column(*column_configuration)
 
     def build_sheet_data(self):
         sheet_data = {}
