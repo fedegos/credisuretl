@@ -1,9 +1,7 @@
-import openpyxl
 import time
-# import json
 from datetime import datetime
 from functools import reduce
-from operator import itemgetter
+import os
 
 import tableextraction
 import exceladapter
@@ -53,6 +51,15 @@ def get_columns_configuration():
     config_list.append(("P", "Monto total a cobrar", 'amount_to_collect'))
     return config_list
 
+def get_old_excel_filename(filename):
+    return filename[:-1]
+
+def upgrade_if_older_version(filename):
+    old_filename = get_old_excel_filename(filename)
+    if not os.path.isfile(filename) and os.path.isfile(old_filename):
+        exceladapter.ExcelUpgrader(old_filename).upgrade()
+
+
 errors = []
 customers = {}
 collections = datastructures.HashOfLists()
@@ -64,10 +71,20 @@ accounts_to_collect = {
     "I": []
 }
 
-customers_reader = exceladapter.excelreader.ExcelReader('inputs/Clientes.xlsx')
-collections_reader = exceladapter.excelreader.ExcelReader('inputs/Cobranza.xlsx')
-pending_bills_reader = exceladapter.excelreader.ExcelReader('inputs/Factura.xlsx')
-accounts_to_collect_reader = exceladapter.excelreader.ExcelReader('inputs/Cuentas a Cobrar.xlsx')
+input_customers_filename = 'inputs/Clientes.xlsx'
+input_collections_filename = 'inputs/Cobranza.xlsx'
+input_pending_bills_filename = 'inputs/Factura.xlsx'
+input_accounts_to_collect_filename = 'inputs/Cuentas a Cobrar.xlsx'
+
+upgrade_if_older_version(input_customers_filename)
+upgrade_if_older_version(input_collections_filename)
+upgrade_if_older_version(input_pending_bills_filename)
+upgrade_if_older_version(input_accounts_to_collect_filename)
+
+customers_reader = exceladapter.excelreader.ExcelReader(input_customers_filename)
+collections_reader = exceladapter.excelreader.ExcelReader(input_collections_filename)
+pending_bills_reader = exceladapter.excelreader.ExcelReader(input_pending_bills_filename)
+accounts_to_collect_reader = exceladapter.excelreader.ExcelReader(input_accounts_to_collect_filename)
 
 customers_sheet = customers_reader.get_sheet('Sheet0')
 collections_sheet = collections_reader.get_sheet('hoja1')
@@ -94,6 +111,9 @@ for row_unpacker in collections_unpacker.read_rows(2):
 
     document = row_unpacker.get_value_at(2)
     raw_code = row_unpacker.get_value_at(5)
+
+    if not raw_code:
+        raw_code = ""
 
     sales_order = ""
 
@@ -210,6 +230,13 @@ for row_unpacker in accounts_to_collect_unpacker.read_rows(2):
         if version == NUEVO:
             previous_payments = reduce(lambda x, y: x + y, list(map(lambda x: x['payments'], collections_for_order)),
                                        [])
+
+            if '' in previous_payments:
+                print("Número de pago no especificado. Cliente: ",
+                      collections_for_order[0]['customer'],
+                      ". Orden: ", collections_for_order[0]['sales_order'])
+                exit("ERROR")
+
             previous_payments_without_advances_str = filter(lambda x: x != 'E', previous_payments)
             previous_payments_without_advances = [int(x) for x in previous_payments_without_advances_str]
             current_payment_number = max(previous_payments_without_advances, default=0) + 1
