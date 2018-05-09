@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='credisuretl',
-      version='0.1.1',
+      version='0.1.4',
       description='ETL for Felsim',
       url='http://github.com/fedegos/credisuretl',
       author='Federico Gosman',
@@ -14,6 +14,7 @@ setup(name='credisuretl',
           ]
       },
       install_requires=[
-            'openpyxl==2.4.7'
+            'openpyxl==2.4.7',
+            'xlrd'
       ],
       zip_safe=False)

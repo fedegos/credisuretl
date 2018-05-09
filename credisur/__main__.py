@@ -115,7 +115,7 @@ def main(args=None):
     pending_bills_reader = exceladapter.excelreader.ExcelReader(input_pending_bills_filename)
     accounts_to_collect_reader = exceladapter.excelreader.ExcelReader(input_accounts_to_collect_filename)
 
-    customers_sheet = customers_reader.get_sheet('Sheet0')
+    customers_sheet = customers_reader.get_sheet('hoja1')
     collections_sheet = collections_reader.get_sheet('hoja1')
     pending_bills_sheet = pending_bills_reader.get_sheet('hoja1')
     accounts_to_collect_sheet = accounts_to_collect_reader.get_sheet('hoja1')
@@ -264,7 +264,7 @@ def main(args=None):
                     print("Número de pago no especificado. Cliente: ",
                           collections_for_order[0]['customer'],
                           ". Orden: ", collections_for_order[0]['sales_order'])
-                    exit("ERROR")
+                    exit("ERROR FATAL: Cobranza mal cargada")
 
                 previous_payments_without_advances_str = filter(lambda x: x != 'E', previous_payments)
                 previous_payments_without_advances = [int(x) for x in previous_payments_without_advances_str]
@@ -312,6 +312,9 @@ def main(args=None):
             past_due_debt = advance_payment + (due_payments * payment_amount)
             overdue_balance = past_due_debt - paid_amount
 
+        if plan == current_payment_number:
+            print("última cuota - cliente:", customer)
+
         account_to_collect['version'] = version
 
         account_to_collect['document'] = document
@@ -346,10 +349,7 @@ def main(args=None):
         account_to_collect['amount_to_collect'] = float(payment_amount) + float(overdue_balance)
 
         if not account_to_collect['city'] or not account_to_collect['customer']:
-            print("NOT CITY OR CUSTOMER", account_to_collect['city'], account_to_collect['customer'])
-
-        if customer == "ALMAZA YOLANDA DEL CARMEN":
-            print(accounts_to_collect)
+            print("MISSING CITY OR CUSTOMER", account_to_collect['city'], account_to_collect['customer'])
 
         accounts_to_collect[collection_account].append(account_to_collect)
 
