@@ -3,6 +3,13 @@ from datetime import datetime, timedelta
 
 class CalendarOperations:
     def add_months(self, since_date, months_to_add):
+
+        if not isinstance(since_date, datetime):
+            raise ValueError("since_date is not a datetime object")
+
+        if not isinstance(months_to_add, int):
+            raise ValueError("months_to_add is not an integer")
+
         day = since_date.day
         month = since_date.month
         year = since_date.year

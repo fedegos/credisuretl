@@ -262,6 +262,7 @@ def main(args=None):
                 'date'].strftime(
                 "%d/%m/%Y")
 
+            '''
             if version == NUEVO:
                 previous_payments = reduce(lambda x, y: x + y,
                                            list(map(lambda x: x['payments'], collections_for_order)),
@@ -276,6 +277,7 @@ def main(args=None):
                 previous_payments_without_advances_str = filter(lambda x: x != 'E', previous_payments)
                 previous_payments_without_advances = [int(x) for x in previous_payments_without_advances_str]
                 current_payment_number = max(previous_payments_without_advances, default=0) + 1
+            '''
 
         if version == HISTORICO:
             current_payment_number, plan = list_of_codes[3].split(" de ")
@@ -325,7 +327,7 @@ def main(args=None):
                                 0)
             due_payments_with_current = next(
                 (plan - i for i, v in enumerate(reversed(due_dates)) if v <= last_date_of_month), 0)
-            current_payment_number_by_date = next(
+            current_payment_number_by_date = current_payment_number = next(
                 (plan - i for i, v in enumerate(reversed(due_dates)) if v <= last_date_of_month), 0)
             past_due_debt = advance_payment + (due_payments * payment_amount)
             overdue_balance = past_due_debt - paid_amount
@@ -342,8 +344,9 @@ def main(args=None):
             partial_debt_in_payment = overdue_balance % payment_amount
 
             if partial_debt_in_payment > 0:
-                first_payment_description = "%s ($%s faltantes para completar cuota)" % (
-                    missing_payment_numbers[-1], partial_debt_in_payment)
+                first_payment_description = "+$%s de cuota %s" % (
+                    int(partial_debt_in_payment),
+                    missing_payment_numbers[-1])
                 missing_payment_numbers[-1] = first_payment_description
 
             current_payment_description = ", ".join(str(i) for i in missing_payment_numbers)
