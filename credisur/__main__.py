@@ -5,11 +5,11 @@ import time
 from datetime import datetime
 from functools import reduce
 
-import datastructures
-import dateintelligence
-import exceladapter
-import excelbuilder
-import tableextraction
+import credisur.datastructures as datastructures
+import credisur.dateintelligence as dateintelligence
+import credisur.exceladapter as exceladapter
+import credisur.excelbuilder as excelbuilder
+import credisur.tableextraction as tableextraction
 
 
 # TODO: Copiar listado de facturas en solapa.
@@ -20,11 +20,22 @@ import tableextraction
 def working_directory():
     return os.getcwd().replace('\\', '/')
 
+def valid_date(s):
+    try:
+        return datetime.strptime(s, "%Y-%m-%d")
+    except ValueError:
+        msg = "No es una fecha válida: '{0}'.".format(s)
+        raise argparse.ArgumentTypeError(msg)
 
 def get_parser():
     parser = argparse.ArgumentParser(description='Script para procesar planillas de Credisur')
     parser.add_argument("--inputs", "-i", help="Permite definir la carpeta de inputs", default="inputs")
     parser.add_argument("--outputs", "-o", help="Permite definir la carpeta de outputs", default="outputs")
+    parser.add_argument(
+        "--date","-d",
+        help="Permite definir la fecha de cálculo para vencimientos. Formato: AAAA-MM-DD. Si no se especifica, toma la fecha de hoy.",
+        type=valid_date
+    )
 
     return parser
 
@@ -56,7 +67,7 @@ def main(args=None):
     calendar_ops = dateintelligence.CalendarOperations()
 
     # calendar
-    current_date = datetime.now()
+    current_date = params.date or datetime.now()
     first_day_of_current_month = datetime(current_date.year, current_date.month, 1)
     last_date_of_month = calendar_ops.last_day_of_month(current_date)
 
