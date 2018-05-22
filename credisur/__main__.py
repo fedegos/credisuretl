@@ -196,7 +196,14 @@ def main(args=None):
 
     for row_unpacker in bills_unpacker.read_rows(2):
 
+        document_type = row_unpacker.get_value_at(3)
         document = row_unpacker.get_value_at(4)
+
+        if document_type == "Factura":
+            document_type = "Factura de Venta"
+
+        document_type_and_number = "%s N° %s" % (document_type, document)
+
         raw_code = row_unpacker.get_value_at(11)
         amount = row_unpacker.get_value_at(18)
 
@@ -220,11 +227,11 @@ def main(args=None):
             error = "Factura con orden de compra errónea (%s). Documento: %s" % (sales_order, document)
             errors.append(error)
 
-        if sales_order in bills and version == NUEVO:
+        if document_type_and_number in bills and version == NUEVO:
             errors.append("Orden de compra repetida. Documento: %s. Orden de compra: %s" % (document, sales_order))
             continue
 
-        bills[sales_order] = amount
+        bills[document_type_and_number] = amount
 
     accounts_to_collect_unpacker = tableextraction.TableUnpacker(accounts_to_collect_sheet)
 
@@ -273,23 +280,6 @@ def main(args=None):
                 'date'].strftime(
                 "%d/%m/%Y")
 
-            '''
-            if version == NUEVO:
-                previous_payments = reduce(lambda x, y: x + y,
-                                           list(map(lambda x: x['payments'], collections_for_order)),
-                                           [])
-
-                if '' in previous_payments:
-                    print("Número de pago no especificado. Cliente: ",
-                          collections_for_order[0]['customer'],
-                          ". Orden: ", collections_for_order[0]['sales_order'])
-                    exit("ERROR FATAL: Cobranza mal cargada\nNo se generaron los listados.")
-
-                previous_payments_without_advances_str = filter(lambda x: x != 'E', previous_payments)
-                previous_payments_without_advances = [int(x) for x in previous_payments_without_advances_str]
-                current_payment_number = max(previous_payments_without_advances, default=0) + 1
-            '''
-
         if version == HISTORICO:
             current_payment_number, plan = list_of_codes[3].split(" de ")
             current_payment_number = int(current_payment_number)
@@ -311,7 +301,8 @@ def main(args=None):
             plan = int(list_of_codes[3])
             payment_amount = float(list_of_codes[4])
             debt_balance = row_unpacker.get_value_at(8)
-            total_purchase_value = bills[sales_order]
+
+            total_purchase_value = bills[document]
             paid_amount = total_purchase_value - debt_balance
             advance_payment = total_purchase_value - (plan * payment_amount)
 
