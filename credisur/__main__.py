@@ -3,7 +3,6 @@ import os
 import sys
 import time
 from datetime import datetime
-from functools import reduce
 
 import credisur.datastructures as datastructures
 import credisur.dateintelligence as dateintelligence
@@ -41,7 +40,6 @@ def get_parser():
 
 
 def is_code_permitted(code):
-    print(code)
     return True
 
 
@@ -306,6 +304,14 @@ def main(args=None):
             paid_amount = total_purchase_value - debt_balance
             advance_payment = total_purchase_value - (plan * payment_amount)
 
+            if 100 >= advance_payment > 0:
+                total_plan_amount = str(int(plan * payment_amount))
+                error = "El valor del anticipo es muy bajo ($ %s). Comprobar que no se trate de un error de carga. " \
+                       "%s. Cliente: %s. Orden de Compra: %s. Valor total de Factura: %s. " \
+                       "Valor total según plan: %s" % (
+                    advance_payment, document, customer, sales_order, total_purchase_value, total_plan_amount )
+                errors.append(error)
+
             past_payments = 0
 
             if total_purchase_value < (plan * payment_amount):
@@ -334,22 +340,34 @@ def main(args=None):
             past_due_debt = advance_payment + (due_payments * payment_amount)
             overdue_balance = past_due_debt - paid_amount
 
+            overdue_advance_payment_amount = (advance_payment - paid_amount) if advance_payment - paid_amount > 0 else 0
+
             missing_payments = due_payments_with_current - past_payments
 
             if not missing_payments > 0:
-                customer_without_payment_descrption = "%s - %s (orden: %s) - %s" % (
-                    city, customer, sales_order, address or 'Sin dirección')
+                customer_without_payment_descrption = "%s - %s (orden: %s) - %s. Monto vencido: %s. Monto cobrado: %s. Primer vencimiento: %s" % (
+                    city, customer, sales_order, address or 'Sin dirección',
+                    past_due_debt, paid_amount, due_date.strftime("%d/%m/%Y")
+                )
                 customers_without_payments_due.append(customer_without_payment_descrption)
                 continue
 
             missing_payment_numbers = list(current_payment_number_by_date - x for x in range(missing_payments))
             partial_debt_in_payment = overdue_balance % payment_amount
 
-            if partial_debt_in_payment > 0:
+            partial_debt_in_payment_without_advance = partial_debt_in_payment - overdue_advance_payment_amount
+
+            if partial_debt_in_payment_without_advance > 0:
                 first_payment_description = "+$%s de cuota %s" % (
-                    int(partial_debt_in_payment),
+                    int(partial_debt_in_payment_without_advance),
                     missing_payment_numbers[-1])
                 missing_payment_numbers[-1] = first_payment_description
+
+            if overdue_advance_payment_amount > 0:
+                advance_payment_description = "+$%s de anticipo" % (
+                    int(overdue_advance_payment_amount)
+                    )
+                missing_payment_numbers.append(advance_payment_description)
 
             current_payment_description = ", ".join(str(i) for i in missing_payment_numbers)
 
@@ -445,7 +463,7 @@ def main(args=None):
             f.write(customer)
             f.write("\n")
 
-    no_payment_due_filename = outputs_path + 'clientes_sin_pagos_' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
+    no_payment_due_filename = outputs_path + 'ordenes_de_compra_abiertas_sin_cuotas_a_cobrar_este_periodo' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
     with open(no_payment_due_filename, 'w') as f:
         for customer in sorted(customers_without_payments_due):
             f.write(customer)
