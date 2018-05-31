@@ -1,3 +1,11 @@
+
+C:\Users\Federico\Documents\Desarrollo\python\pycharm_venv\Scripts\activate.bat
+C:\Users\Federico\Documents\Desarrollo\python\my_venvs\felsim_install_test\Scripts
+
+python setup.py sdist && python setup.py bdist_wheel && twine upload dist/*
+
+pip install --no-cache-dir --upgrade credisuretl
+
 # links
 https://www.datacamp.com/community/tutorials/python-excel-tutorial
 
