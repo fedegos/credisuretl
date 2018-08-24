@@ -76,11 +76,6 @@ def main(args=None):
     first_day_of_current_month = datetime(current_date.year, current_date.month, 1)
     last_date_of_month = calendar_ops.last_day_of_month(current_date)
 
-    def get_version_from_code(code):
-        if "de" in code.split("-")[3]:
-            return HISTORICO
-        return NUEVO
-
     def get_columns_configuration():
         config_list = list()
         config_list.append(("A", "Ciudad", 'city'))
@@ -116,6 +111,7 @@ def main(args=None):
 
     customers_in_last_payment = []
     customers_without_payments_due = []
+    list_of_advance_payments = []
 
     accounts_to_collect = {
         "C": [],
@@ -133,6 +129,7 @@ def main(args=None):
     upgrade_if_older_version(input_pending_bills_filename)
     upgrade_if_older_version(input_accounts_to_collect_filename)
 
+    # ExcelReader debería tomar un Stream en vez de un filename - TODO: probar
     collections_reader = exceladapter.excelreader.ExcelReader(input_collections_filename)
     pending_bills_reader = exceladapter.excelreader.ExcelReader(input_pending_bills_filename)
     accounts_to_collect_reader = exceladapter.excelreader.ExcelReader(input_accounts_to_collect_filename)
@@ -272,6 +269,8 @@ def main(args=None):
         account_receivable.validate_low_advance_payment(100, errors)
         account_receivable.validate_advance_payment(errors)
 
+        account_receivable.add_to_list_if_advance_payments(list_of_advance_payments)
+
         if not account_receivable.validate_total_sale_amount_and_plan_value(errors): continue
 
         if not account_receivable.has_due_payments(customers_without_payments_due): continue
@@ -334,6 +333,17 @@ def main(args=None):
     with open(no_payment_due_filename, 'w') as f:
         for customer in sorted(customers_without_payments_due):
             f.write(customer)
+            f.write("\n")
+
+    advance_payments_filename = outputs_path + 'anticipos_' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
+    with open(advance_payments_filename, 'w') as f:
+        for advance_payment in list_of_advance_payments:
+            f.write("Documento: %s - Cliente: %s - Monto total: %s - Anticipo calculado: %s" % (
+                    advance_payment["document"],
+                    advance_payment["customer"],
+                    advance_payment["total_purchase_value"],
+                    advance_payment["advance_payment"]
+                    ))
             f.write("\n")
 
     for payment_error in PAYMENT_ERRORS:

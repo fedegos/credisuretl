@@ -1,4 +1,4 @@
-import exceladapter
+import credisur.exceladapter as exceladapter
 from . import TableUnpacker
 
 

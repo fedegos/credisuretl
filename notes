@@ -6,6 +6,8 @@ python setup.py sdist && python setup.py bdist_wheel && twine upload dist/*
 
 pip install --no-cache-dir --upgrade credisuretl
 
+git push --tags
+
 # links
 https://www.datacamp.com/community/tutorials/python-excel-tutorial
 

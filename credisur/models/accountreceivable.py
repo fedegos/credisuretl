@@ -179,6 +179,15 @@ class AccountReceivable:
 
         return True
 
+    def add_to_list_if_advance_payments(self, list_of_advance_payments):
+        if self.advance_payment and self.advance_payment > 0:
+            list_of_advance_payments.append({
+                "document": self.document,
+                "customer": self.customer,
+                "total_purchase_value": self.total_purchase_value,
+                "advance_payment": self.advance_payment
+            })
+
     def validate_total_sale_amount_and_plan_value(self,errors):
         if (self.version == HISTORICO): return True
 
