@@ -206,22 +206,35 @@ class AccountReceivable:
         if (self.version == HISTORICO): return True
 
         if not self.missing_payments > 0:
-            customer_without_payment_descrption = "%s - %s (orden: %s) - %s. Monto vencido: %s. Monto cobrado: %s. Primer vencimiento: %s" % (
-                self.city, self.customer, self.sales_order,
-                self.address or 'Sin dirección',
-                self.past_due_debt, self.paid_amount,
-                self.due_date.strftime("%d/%m/%Y")
-            )
-            customers_without_payments_due.append(customer_without_payment_descrption)
+
+            customer_without_payment_due = {
+                "city": self.city,
+                "customer": self.customer,
+                "sales_order": self.sales_order,
+                "address": self.address or 'Sin dirección',
+                "past_due_debt": self.past_due_debt,
+                "paid_amount": self.paid_amount,
+                "due_date": self.due_date.strftime("%d/%m/%Y"),
+                "raw_code": self.raw_code
+            }
+
+            customers_without_payments_due.append(customer_without_payment_due)
             return False
 
         return True
 
-    def add_to_list_if_in_last_payment(self, customers_in_last_payment):
+    def add_to_list_if_in_last_payment(self, customers_in_last_payment, first_day_of_current_month):
+        if self.due_date < first_day_of_current_month:
+            return
+
         if self.plan == self.current_payment_number:
-            customer_details = "%s - %s - %s" % (
-                self.city, self.customer,
-                self.address or 'Sin dirección')
+
+            customer_details = {
+                "city": self.city,
+                "customer": self.customer,
+                "address": self.address or 'Sin dirección'
+            }
+
             customers_in_last_payment.append(customer_details)
 
     def get_amount_to_collect(self):
@@ -273,5 +286,7 @@ class AccountReceivable:
         account_to_collect['overdue_balance'] = self.overdue_balance
 
         account_to_collect['amount_to_collect'] = amount_to_collect
+
+        account_to_collect['full_description'] = self.raw_code
 
         return account_to_collect

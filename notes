@@ -6,6 +6,8 @@ python setup.py sdist && python setup.py bdist_wheel && twine upload dist/*
 
 pip install --no-cache-dir --upgrade credisuretl
 
+git tag x.x.x
+
 git push --tags
 
 # links

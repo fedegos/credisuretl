@@ -39,5 +39,9 @@ class CalendarOperations:
         first_day_of_next_month = datetime(next_month.year, next_month.month, 1)
         return first_day_of_next_month + timedelta(days=-1)
 
+    def first_day_of_month(self, date_of_month=datetime.now()):
+        return datetime(date_of_month.year, date_of_month.month, 1)
+
     def list_of_due_date(self, since_date, plan):
         return [self.add_months(since_date, x) for x in range(plan)]
+

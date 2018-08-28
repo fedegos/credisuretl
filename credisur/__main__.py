@@ -10,6 +10,12 @@ import credisur.dateintelligence as dateintelligence
 import credisur.exceladapter as exceladapter
 import credisur.excelbuilder as excelbuilder
 import credisur.tableextraction as tableextraction
+from credisur.config import \
+    get_columns_configuration, \
+    get_advance_payments_columns, \
+    get_last_payment_columns, \
+    get_no_payment_due_columns
+from credisur.extractors import customer_row_extractor
 
 from credisur.models import AccountReceivable
 
@@ -76,27 +82,6 @@ def main(args=None):
     first_day_of_current_month = datetime(current_date.year, current_date.month, 1)
     last_date_of_month = calendar_ops.last_day_of_month(current_date)
 
-    def get_columns_configuration():
-        config_list = list()
-        config_list.append(("A", "Ciudad", 'city'))
-        config_list.append(("B", "Cliente", 'customer'))
-        config_list.append(("C", "Dirección", 'address'))
-        config_list.append(("D", "Teléfono", 'phone'))
-
-        config_list.append(("E", "Fecha de Compra", 'date_of_purchase'))
-        config_list.append(("F", "Fecha de Vencimiento", 'due_date'))
-
-        config_list.append(("G", "Orden de Compra", 'order'))
-        config_list.append(("H", "Última Cobranza", 'last_collection'))
-
-        config_list.append(("I", "Cuotas", 'plan'))
-
-        config_list.append(("J", "Cuotas a pagar", 'current_payment'))
-        config_list.append(("K", "Valor de cuota", 'payment'))
-
-        config_list.append(("L", "Monto total a cobrar", 'amount_to_collect'))
-        return config_list
-
     def get_old_excel_filename(filename):
         return filename[:-1]
 
@@ -137,17 +122,6 @@ def main(args=None):
     collections_sheet = collections_reader.get_sheet('hoja1')
     pending_bills_sheet = pending_bills_reader.get_sheet('hoja1')
     accounts_to_collect_sheet = accounts_to_collect_reader.get_sheet('hoja1')
-
-    def customer_row_extractor(results, unpacker):
-        result = dict()
-
-        name = unpacker.get_value_at(1)
-
-        result['address'] = unpacker.get_value_at(8)
-        result['city'] = unpacker.get_value_at(29)
-        result['phone'] = unpacker.get_value_at(12)
-
-        results[name] = result
 
     customer_extractor = tableextraction.DataExtractor(
         input_customers_filename,
@@ -254,10 +228,11 @@ def main(args=None):
                                                customer, raw_code, customer_data, line_amount,
                                                line_balance, calendar_ops)
 
-        if not account_receivable.is_historic_and_due_for(last_date_of_month): continue
+        if not account_receivable.is_historic_and_due_for(last_date_of_month):
+            continue
 
-
-        if not account_receivable.validate_payment_plan(errors): continue
+        if not account_receivable.validate_payment_plan(errors):
+            continue
 
 
         account_receivable.configure_previous_collections(collections)
@@ -275,7 +250,7 @@ def main(args=None):
 
         if not account_receivable.has_due_payments(customers_without_payments_due): continue
 
-        account_receivable.add_to_list_if_in_last_payment(customers_in_last_payment)
+        account_receivable.add_to_list_if_in_last_payment(customers_in_last_payment, first_day_of_current_month)
         account_to_collect = account_receivable.to_dict()
 
         if not account_to_collect['city'] or not account_to_collect['customer']:
@@ -317,33 +292,42 @@ def main(args=None):
 
     collections_excelwriter.save()
 
+    last_payment_filename = outputs_path + 'última_cuota_' + time.strftime("%Y%m%d-%H%M%S") + '.xlsx'
+
+    last_payment_composer = exceladapter.ExcelBasicComposer(
+        last_payment_filename,
+        customers_in_last_payment,
+        get_last_payment_columns(),
+        "Última Cuota"
+    )
+    last_payment_composer.save()
+
+
+    no_payment_due_filename = outputs_path + 'ordenes_de_compra_abiertas_sin_cuotas_a_cobrar_este_periodo' + time.strftime(
+        "%Y%m%d-%H%M%S") + '.xlsx'
+
+    no_payment_due_composer = exceladapter.ExcelBasicComposer(
+        no_payment_due_filename,
+        customers_without_payments_due,
+        get_no_payment_due_columns(),
+        "Sin cuotas"
+    )
+    no_payment_due_composer.save()
+
+    advance_payments_filename = outputs_path + 'anticipos_' + time.strftime("%Y%m%d-%H%M%S") + '.xlsx'
+
+    advance_payments_composer = exceladapter.ExcelBasicComposer(
+        advance_payments_filename,
+        list_of_advance_payments,
+        get_advance_payments_columns(),
+        "Anticipos"
+    )
+    advance_payments_composer.save()
+
     errors_filename = outputs_path + 'errors_' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
     with open(errors_filename, 'w') as f:
         for error in errors:
             f.write(error)
-            f.write("\n")
-
-    last_payment_filename = outputs_path + 'última_cuota_' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
-    with open(last_payment_filename, 'w') as f:
-        for customer in sorted(customers_in_last_payment):
-            f.write(customer)
-            f.write("\n")
-
-    no_payment_due_filename = outputs_path + 'ordenes_de_compra_abiertas_sin_cuotas_a_cobrar_este_periodo' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
-    with open(no_payment_due_filename, 'w') as f:
-        for customer in sorted(customers_without_payments_due):
-            f.write(customer)
-            f.write("\n")
-
-    advance_payments_filename = outputs_path + 'anticipos_' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
-    with open(advance_payments_filename, 'w') as f:
-        for advance_payment in list_of_advance_payments:
-            f.write("Documento: %s - Cliente: %s - Monto total: %s - Anticipo calculado: %s" % (
-                    advance_payment["document"],
-                    advance_payment["customer"],
-                    advance_payment["total_purchase_value"],
-                    advance_payment["advance_payment"]
-                    ))
             f.write("\n")
 
     for payment_error in PAYMENT_ERRORS:
