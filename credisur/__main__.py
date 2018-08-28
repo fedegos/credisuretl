@@ -144,7 +144,7 @@ def main(args=None):
         name = unpacker.get_value_at(1)
 
         result['address'] = unpacker.get_value_at(8)
-        result['city'] = unpacker.get_value_at(28)
+        result['city'] = unpacker.get_value_at(29)
         result['phone'] = unpacker.get_value_at(12)
 
         results[name] = result
