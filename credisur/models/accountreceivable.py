@@ -13,6 +13,7 @@ class AccountReceivable:
         self.overdue_balance = 0
         self.past_due_debt = ""
         self.collections_for_order = []
+        self.collections_for_customer = []
         self.last_collection_date = "Sin cobranza previa"
         self.current_payment_number = 1
 
@@ -42,17 +43,37 @@ class AccountReceivable:
         self.list_of_codes = self.raw_code.split("-")
         self.collection_account, self.collection_person, self.sales_order, *_ = self.list_of_codes
 
-    def configure_previous_collections(self, collections):
-        if self.sales_order and self.sales_order in collections:
+    def configure_previous_collections(self, collections, collections_for_customers):
+        if not self.sales_order:
+            return
+
+        if self.sales_order in collections:
             self.collections_for_order = collections[self.sales_order]
 
+        if self.customer in collections_for_customers:
+            self.collections_for_customer = collections_for_customers[self.customer]
+
+
     def compute_last_collection_date(self):
-        if self.sales_order and len(self.collections_for_order) > 0:
+        if not self.sales_order:
+            return
+
+        if len(self.collections_for_order) > 0:
             self.last_collection_date = sorted(
                 self.collections_for_order,
                 key=lambda x: x['date'],
                 reverse=True
             )[0]['date'].strftime("%d/%m/%Y")
+            return
+
+        if len(self.collections_for_customer) > 0:
+            self.last_collection_date = sorted(
+                self.collections_for_customer,
+                key=lambda x: x['date'],
+                reverse=True
+            )[0]['date'].strftime("%d/%m/%Y")
+            return
+
 
     def compute_due_payment(self,bills, first_day_of_current_month, last_date_of_month):
         {
@@ -219,6 +240,19 @@ class AccountReceivable:
             }
 
             customers_without_payments_due.append(customer_without_payment_due)
+            return False
+
+        return True
+
+    def validate_person(self, errors):
+        if not self.collection_account == "D":
+            return True
+
+        if not self.collection_person in ['H','F']:
+            error = "Error en el código de cobranza para débito: el segundo código debe ser 'F' o 'H'. Documento: %s - Descripción: %s" % (
+            self.document, self.raw_code)
+            errors.append(error)
+
             return False
 
         return True

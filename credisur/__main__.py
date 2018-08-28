@@ -92,6 +92,7 @@ def main(args=None):
 
     errors = []
     collections = datastructures.HashOfLists()
+    collections_for_customers = datastructures.HashOfLists()
     bills = {}
 
     customers_in_last_payment = []
@@ -164,6 +165,7 @@ def main(args=None):
         collection['payments'] = payments
 
         collections.append(sales_order, collection)
+        collections_for_customers.append(customer, collection)
 
     bills_unpacker = tableextraction.TableUnpacker(pending_bills_sheet)
 
@@ -235,7 +237,7 @@ def main(args=None):
             continue
 
 
-        account_receivable.configure_previous_collections(collections)
+        account_receivable.configure_previous_collections(collections, collections_for_customers)
         account_receivable.compute_last_collection_date()
 
 
@@ -246,9 +248,14 @@ def main(args=None):
 
         account_receivable.add_to_list_if_advance_payments(list_of_advance_payments)
 
-        if not account_receivable.validate_total_sale_amount_and_plan_value(errors): continue
+        if not account_receivable.validate_total_sale_amount_and_plan_value(errors):
+            continue
 
-        if not account_receivable.has_due_payments(customers_without_payments_due): continue
+        if not account_receivable.has_due_payments(customers_without_payments_due):
+            continue
+
+        if not account_receivable.validate_person(errors):
+            continue
 
         account_receivable.add_to_list_if_in_last_payment(customers_in_last_payment, first_day_of_current_month)
         account_to_collect = account_receivable.to_dict()
@@ -268,6 +275,8 @@ def main(args=None):
                                key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
     sorted_accounts_D_H = filter(lambda x: x['person'] == 'H', sorted_accounts_D)
     sorted_accounts_D_F = filter(lambda x: x['person'] == 'F', sorted_accounts_D)
+
+    # print("WRONG PERSON ----- ",list(filter(lambda x: x['person'] not in ['H', 'F'], sorted_accounts_D)))
 
     sorted_accounts_I = sorted(accounts_to_collect['I'],
                                key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))

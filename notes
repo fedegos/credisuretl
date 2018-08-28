@@ -10,6 +10,8 @@ git tag x.x.x
 
 git push --tags
 
+ git push origin <tag_name>
+
 # links
 https://www.datacamp.com/community/tutorials/python-excel-tutorial
 
