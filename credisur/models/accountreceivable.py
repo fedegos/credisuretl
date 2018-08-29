@@ -245,11 +245,17 @@ class AccountReceivable:
         return True
 
     def validate_person(self, errors):
-        if not self.collection_account == "D":
+        if not self.collection_account in ["C", "D"]:
+            error = "Error en el código de cobranza: el primer código debe ser 'C' o 'D'. Documento: %s - Descripción: %s" % (
+            self.document, self.raw_code)
+            errors.append(error)
+            return False
+
+        if self.collection_account == "C":
             return True
 
-        if not self.collection_person in ['H','F']:
-            error = "Error en el código de cobranza para débito: el segundo código debe ser 'F' o 'H'. Documento: %s - Descripción: %s" % (
+        if not self.collection_person in ['I','H','F']:
+            error = "Error en el código de cobranza para débito: el segundo código debe ser 'I', 'F' o 'H'. Documento: %s - Descripción: %s" % (
             self.document, self.raw_code)
             errors.append(error)
 
