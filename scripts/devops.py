@@ -5,7 +5,7 @@ import sys
 
 version = {}
 
-version_filename = '../credisur/version.py'
+version_filename = './credisur/version.py'
 
 def main(args):
     old_version, new_version = bump_version()
