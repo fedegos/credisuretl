@@ -16,7 +16,9 @@ def main(args):
         (push_to_remote_git,),
         (tag_commit, new_version),
         (push_tag_to_remote_git, new_version),
-        (compile_and_release,)
+        (compile_sdist,),
+        (compile_bdist,),
+        (twine_upload,),
     ]
 
     all_succeded = all(x[0](*x[1:]) for x in commands)
@@ -64,10 +66,22 @@ def push_tag_to_remote_git(version):
     command = prepare_command(['git', 'push', 'origin', version])
     return run_command(command)
 
-def compile_and_release():
-    command_args = 'python setup.py sdist && python setup.py bdist_wheel && twine upload dist/*'.split(" ")
+
+def compile_sdist():
+    command_args = 'python setup.py sdist'.split(" ")
     command = prepare_command(command_args)
     return run_command(command)
+
+def compile_bdist():
+    command_args = 'python setup.py bdist_wheel'.split(" ")
+    command = prepare_command(command_args)
+    return run_command(command)
+
+def twine_upload():
+    command_args = 'twine upload dist/*'.split(" ")
+    command = prepare_command(command_args)
+    return run_command(command)
+
 
 def get_git_tags():
     return set(
