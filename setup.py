@@ -1,7 +1,11 @@
 from setuptools import setup, find_packages
 
+version = {}
+exec(open('credisur/version.py').read(), version)
+
+
 setup(name='credisuretl',
-      version='0.1.13',
+      version=version['__version__'],
       description='ETL for Felsim',
       url='http://github.com/fedegos/credisuretl',
       author='Federico Gosman',
