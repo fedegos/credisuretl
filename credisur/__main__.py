@@ -168,6 +168,16 @@ def main(args=None):
 
         collections_for_customers.append(customer, collection)
 
+
+    for customername, customerdetails in customers.items():
+        if not customername in collections_for_customers:
+            customers_in_last_payment.append({
+                "city": customerdetails['city'],
+                "customer": customername,
+                "address": customerdetails['address'] or 'Sin dirección',
+                "reason": "Sin compras abiertas"
+            })
+
     bills_unpacker = tableextraction.TableUnpacker(pending_bills_sheet)
 
     for row_unpacker in bills_unpacker.read_rows(2):
