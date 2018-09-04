@@ -284,9 +284,11 @@ class AccountReceivable:
             return
         '''
 
-        print(self.due_payments, self.due_payments_with_current, self.missing_payment_numbers)
-
-        if (self.plan == self.current_payment_number):
+        if (
+                self.plan == self.current_payment_number and
+                len(self.missing_payment_numbers) == 1 and
+                self.current_payment_number == self.missing_payment_numbers[0]
+            ):
 
             # reduce((lambda x, y: x * y), self.collections_for_customer)
 
