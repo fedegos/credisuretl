@@ -175,6 +175,7 @@ def main(args=None):
                 "city": customerdetails['city'],
                 "customer": customername,
                 "address": customerdetails['address'] or 'Sin dirección',
+                "lastcollection": "No disponible",
                 "reason": "Sin compras abiertas"
             })
 

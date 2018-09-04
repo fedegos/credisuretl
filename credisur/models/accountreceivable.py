@@ -296,6 +296,7 @@ class AccountReceivable:
                 "city": self.city,
                 "customer": self.customer,
                 "address": self.address or 'Sin dirección',
+                "lastcollection": self.last_collection_date,
                 "reason": "Última cuota"
             }
 
