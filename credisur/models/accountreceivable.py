@@ -60,16 +60,6 @@ class AccountReceivable:
         if not self.sales_order:
             return
 
-        '''
-        if len(self.collections_for_order) > 0:
-            self.last_collection_date = sorted(
-                self.collections_for_order,
-                key=lambda x: x['date'],
-                reverse=True
-            )[0]['date'].strftime("%d/%m/%Y")
-            return
-        '''
-
         if len(self.collections_for_customer) > 0:
             self.last_collection_date = sorted(
                 self.collections_for_customer,
@@ -278,10 +268,13 @@ class AccountReceivable:
         if self.version == HISTORICO:
             return
 
+        '''
         if self.due_date < first_day_of_current_month:
+            print(self.due_payments_with_current)
             return
+        '''
 
-        if self.plan == self.current_payment_number:
+        if (self.plan == self.current_payment_number and self.due_payments_with_current == 1):
 
             # reduce((lambda x, y: x * y), self.collections_for_customer)
 

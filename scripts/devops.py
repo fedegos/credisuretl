@@ -20,8 +20,7 @@ def main(args):
         (push_tag_to_remote_git, new_version),
         (compile_sdist,),
         (compile_bdist,),
-        (twine_upload,),
-        (send_message_to_slack, new_version)
+        (twine_upload,)
     ]
 
     all_succeded = run_all(commands)
@@ -30,6 +29,9 @@ def main(args):
     if not all_succeded:
         update_version_file(old_version)
         print("Execution failed. There were errors in the execution of commands.")
+        return
+
+    send_message_to_slack(new_version)
 
 
 def send_message_to_slack(version):
