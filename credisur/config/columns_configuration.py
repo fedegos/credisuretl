@@ -18,4 +18,5 @@ def get_columns_configuration():
 
     config_list.append(("L", "Monto total a cobrar", 'amount_to_collect'))
     config_list.append(("M", "Descripción", 'full_description'))
+    config_list.append(("N", "Versión", 'version'))
     return config_list

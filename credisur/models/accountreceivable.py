@@ -1,3 +1,5 @@
+from functools import reduce
+
 NUEVO = "nuevo"
 HISTORICO = "histórico"
 
@@ -58,6 +60,7 @@ class AccountReceivable:
         if not self.sales_order:
             return
 
+        '''
         if len(self.collections_for_order) > 0:
             self.last_collection_date = sorted(
                 self.collections_for_order,
@@ -65,6 +68,7 @@ class AccountReceivable:
                 reverse=True
             )[0]['date'].strftime("%d/%m/%Y")
             return
+        '''
 
         if len(self.collections_for_customer) > 0:
             self.last_collection_date = sorted(
@@ -251,6 +255,13 @@ class AccountReceivable:
             errors.append(error)
             return False
 
+        if self.collection_account == "C":
+            if not self.collection_person in ['E']:
+                error = "Error en el código de cobranza para crédito: el segundo código debe ser 'E'. Documento: %s - Descripción: %s" % (
+                    self.document, self.raw_code)
+                errors.append(error)
+                return False
+
         if not self.collection_account == "D":
             return True
 
@@ -264,15 +275,21 @@ class AccountReceivable:
         return True
 
     def add_to_list_if_in_last_payment(self, customers_in_last_payment, first_day_of_current_month):
+        if self.version == HISTORICO:
+            return
+
         if self.due_date < first_day_of_current_month:
             return
 
         if self.plan == self.current_payment_number:
 
+            # reduce((lambda x, y: x * y), self.collections_for_customer)
+
             customer_details = {
                 "city": self.city,
                 "customer": self.customer,
-                "address": self.address or 'Sin dirección'
+                "address": self.address or 'Sin dirección',
+                "reason": "Última cuota"
             }
 
             customers_in_last_payment.append(customer_details)
@@ -286,6 +303,22 @@ class AccountReceivable:
             return result - float(self.payment_amount)
 
         return result
+
+    def get_full_description(self):
+        codes = self.raw_code.split("-")
+
+        if self.version == HISTORICO:
+            if len(codes) > 4:
+                return codes[4]
+
+            return ""
+
+        if len(codes) > 5:
+            return codes[5]
+
+        return ""
+
+
 
     def to_dict(self):
         account_to_collect = {}
@@ -327,6 +360,6 @@ class AccountReceivable:
 
         account_to_collect['amount_to_collect'] = amount_to_collect
 
-        account_to_collect['full_description'] = self.raw_code
+        account_to_collect['full_description'] = self.get_full_description()
 
         return account_to_collect

@@ -165,6 +165,7 @@ def main(args=None):
         collection['payments'] = payments
 
         collections.append(sales_order, collection)
+
         collections_for_customers.append(customer, collection)
 
     bills_unpacker = tableextraction.TableUnpacker(pending_bills_sheet)

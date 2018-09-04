@@ -2,6 +2,8 @@
 # https://github.com/pallets/flask/blob/master/scripts/make-release.py
 from subprocess import PIPE, Popen
 import sys
+import os
+from slackclient import SlackClient
 
 version = {}
 
@@ -19,14 +21,30 @@ def main(args):
         (compile_sdist,),
         (compile_bdist,),
         (twine_upload,),
+        (send_message_to_slack, new_version)
     ]
 
-    all_succeded = all(x[0](*x[1:]) for x in commands)
+    all_succeded = run_all(commands)
 
 
     if not all_succeded:
         update_version_file(old_version)
         print("Execution failed. There were errors in the execution of commands.")
+
+
+def send_message_to_slack(version):
+    slack_token = os.environ["SLACK_API_TOKEN"]
+    sc = SlackClient(slack_token)
+
+    message = "Credisuretl se actualizó a la versión %s. El comando para actualizar es: `pip install --no-cache-dir --upgrade credisuretl`" % version
+
+    sc.api_call(
+        "chat.postMessage",
+        channel="C5L54CYRK",
+        text=message
+    )
+
+    print("message sent")
 
 
 def update_version_file(version):
@@ -89,27 +107,22 @@ def get_git_tags():
     )
 
 def prepare_command(command_args):
-    print("preparing command")
 
     return Popen(command_args, stdout=PIPE)
 
 def run_command(process):
-    print("running command")
-
     stdout, stderr = process.communicate()
 
-    print("command ran")
-
     if stderr:
-        print(stderr)
-        print("command failed")
         return False
 
     if stdout:
         print(stdout)
 
-    print("command succeeded")
     return True
+
+def run_all(commands):
+    return all(x[0](*x[1:]) for x in commands)
 
 def test_any():
     def try_x(x):
