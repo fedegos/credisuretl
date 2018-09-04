@@ -264,6 +264,16 @@ class AccountReceivable:
 
         return True
 
+    def get_amount_to_collect(self):
+        result = float(self.payment_amount) + float(self.overdue_balance)
+
+        if self.version == HISTORICO: return result
+
+        if self.due_payments_with_current == self.due_payments:
+            return result - float(self.payment_amount)
+
+        return result
+
     def add_to_list_if_in_last_payment(self, customers_in_last_payment, first_day_of_current_month):
         if self.version == HISTORICO:
             return
@@ -274,7 +284,9 @@ class AccountReceivable:
             return
         '''
 
-        if (self.plan == self.current_payment_number and self.due_payments_with_current == 1):
+        print(self.due_payments, self.due_payments_with_current, self.missing_payment_numbers)
+
+        if (self.plan == self.current_payment_number):
 
             # reduce((lambda x, y: x * y), self.collections_for_customer)
 
@@ -286,16 +298,6 @@ class AccountReceivable:
             }
 
             customers_in_last_payment.append(customer_details)
-
-    def get_amount_to_collect(self):
-        result = float(self.payment_amount) + float(self.overdue_balance)
-
-        if self.version == HISTORICO: return result
-
-        if self.due_payments_with_current == self.due_payments:
-            return result - float(self.payment_amount)
-
-        return result
 
     def get_full_description(self):
         codes = self.raw_code.split("-")

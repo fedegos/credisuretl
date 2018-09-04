@@ -25,7 +25,6 @@ def main(args):
 
     all_succeded = run_all(commands)
 
-
     if not all_succeded:
         update_version_file(old_version)
         print("Execution failed. There were errors in the execution of commands.")
