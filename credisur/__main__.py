@@ -198,6 +198,10 @@ def main(args=None):
             errors.append("Factura sin descripción. Documento: %s" % document)
             continue
 
+        if len(raw_code.split("-")) < 4:
+            errors.append("Factura con código incorrecto (%s). Documento: %s" % (raw_code, document))
+            continue
+
         _, _, sales_order, payment_code, *_ = raw_code.split("-")
 
         if "de" in payment_code:
@@ -232,6 +236,7 @@ def main(args=None):
 
         if "Cobranza" in document: continue
         if not raw_code: continue
+        if len(raw_code.split("-")) < 4: continue
 
         line_amount = float(row_unpacker.get_value_at(8))
         line_balance = row_unpacker.get_value_at(8)
