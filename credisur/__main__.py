@@ -10,6 +10,7 @@ import credisur.dateintelligence as dateintelligence
 import credisur.exceladapter as exceladapter
 import credisur.excelbuilder as excelbuilder
 import credisur.tableextraction as tableextraction
+
 from credisur.config import \
     get_columns_configuration, \
     get_advance_payments_columns, \
@@ -18,6 +19,8 @@ from credisur.config import \
 from credisur.extractors import customer_row_extractor
 
 from credisur.models import AccountReceivable
+
+from credisur.bankparser import parse_bank_files
 
 # TODO: Copiar listado de facturas en solapa.
 # TODO: Controlar consistencia código (por ejemplo, D-E está mal.
@@ -36,7 +39,12 @@ def valid_date(s):
 
 def get_parser():
     parser = argparse.ArgumentParser(description='Script para procesar planillas de Credisur')
+
     parser.add_argument("--version", "-v", help="Muestra la versión.", action="store_true")
+
+    parser.add_argument("--banco", "-b", help="Procesa los archivos del banco disponibles en la carpeta.",
+                        action="store_true")
+
     parser.add_argument("--inputs", "-i", help="Permite definir la carpeta de inputs", default="inputs")
     parser.add_argument("--outputs", "-o", help="Permite definir la carpeta de outputs", default="outputs")
     parser.add_argument(
@@ -66,6 +74,11 @@ def main(args=None):
 
     if params.version:
         print(pkg_resources.require("credisuretl")[0].version)
+        return
+
+    if params.banco:
+        # TODO: Implementar script para procesar archivos de banco
+        parse_bank_files(cwd)
         return
 
     inputs_path = "%s/%s/" % (cwd, params.inputs)
