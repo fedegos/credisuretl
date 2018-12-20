@@ -47,7 +47,7 @@ def parse_line(line):
     id_cliente = line[58:79]
     vto_debito_original = line[80:87]
     ref_debito = line[88:102]
-    importe = line[103:112]
+    importe = int(line[103:112].lstrip("0"))
     moneda_debito = line[113:114]
     fecha_segundo_vencimiento= line[115:122]
     importe_segundo_vencimiento = line[123:132]
