@@ -43,7 +43,7 @@ def parse_line(line):
     fecha_vencimiento = line[25:32]
     cbu_bloque_1 = line[33:40]
     filler_cbu_2 = line[41:43]
-    cbu_bloque_2 = line[44:57]
+    cbu_bloque_2 = line[44:58]
     id_cliente = line[58:79]
     vto_debito_original = line[80:87]
     ref_debito = line[88:102]
