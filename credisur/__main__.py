@@ -16,9 +16,9 @@ from credisur.config import \
     get_advance_payments_columns, \
     get_last_payment_columns, \
     get_no_payment_due_columns
-from credisur.extractors import customer_row_extractor
+from credisur.extractors import customer_row_extractor, collection_row_extractor, CollectionsExtractorResults
 
-from credisur.models import AccountReceivable
+from credisur.models import AccountReceivable, Collection, Collections
 
 from credisur.bankparser import parse_bank_files
 
@@ -77,7 +77,6 @@ def main(args=None):
         return
 
     if params.banco:
-        # TODO: Implementar script para procesar archivos de banco
         parse_bank_files(cwd)
         return
 
@@ -104,8 +103,6 @@ def main(args=None):
             exceladapter.ExcelUpgrader(old_filename).upgrade()
 
     errors = []
-    collections = datastructures.HashOfLists()
-    collections_for_customers = datastructures.HashOfLists()
     bills = {}
 
     customers_in_last_payment = []
@@ -129,11 +126,9 @@ def main(args=None):
     upgrade_if_older_version(input_accounts_to_collect_filename)
 
     # ExcelReader debería tomar un Stream en vez de un filename - TODO: probar
-    collections_reader = exceladapter.excelreader.ExcelReader(input_collections_filename)
     pending_bills_reader = exceladapter.excelreader.ExcelReader(input_pending_bills_filename)
     accounts_to_collect_reader = exceladapter.excelreader.ExcelReader(input_accounts_to_collect_filename)
 
-    collections_sheet = collections_reader.get_sheet('hoja1')
     pending_bills_sheet = pending_bills_reader.get_sheet('hoja1')
     accounts_to_collect_sheet = accounts_to_collect_reader.get_sheet('hoja1')
 
@@ -146,41 +141,18 @@ def main(args=None):
 
     customers = customer_extractor.extract()
 
-    collections_unpacker = tableextraction.TableUnpacker(collections_sheet)
+    collection_extractor = tableextraction.DataExtractor(
+        input_collections_filename,
+        'hoja1',
+        CollectionsExtractorResults(),
+        collection_row_extractor
+    )
 
-    for row_unpacker in collections_unpacker.read_rows(2):
-        collection = dict()
+    collection_extraction_results = collection_extractor.extract()
 
-        document = row_unpacker.get_value_at(2)
-        raw_code = row_unpacker.get_value_at(5) or ""
-        date = row_unpacker.get_value_at(1)
-        customer = row_unpacker.get_value_at(3)
-        amount = row_unpacker.get_value_at(4)
-
-        version = HISTORICO
-        sales_order = ""
-        payments = ""
-
-        if "-" in raw_code:
-            version = NUEVO
-            order_and_payments = raw_code.split("-")
-            sales_order, *payments = order_and_payments
-
-        if sales_order and len(sales_order) != 5:
-            error = "Cobranza con orden de compra errónea (%s). Documento: %s" % (sales_order, document)
-            errors.append(error)
-
-        collection['version'] = version
-        collection['date'] = date
-        collection['customer'] = customer
-        collection['amount'] = amount
-        collection['sales_order'] = sales_order
-        collection['payments'] = payments
-
-        collections.append(sales_order, collection)
-
-        collections_for_customers.append(customer, collection)
-
+    collections = collection_extraction_results.get_collections()
+    collections_for_customers = collection_extraction_results.get_collections_for_customers()
+    errors = errors + collection_extraction_results.get_errors()
 
     for customername, customerdetails in customers.items():
         if not customername in collections_for_customers:

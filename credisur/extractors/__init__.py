@@ -1,1 +1,3 @@
 from .customer_row_extractor import customer_row_extractor
+from .collection_row_extractor import collection_row_extractor
+from .collections_extractor_results import CollectionsExtractorResults
