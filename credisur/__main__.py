@@ -5,7 +5,6 @@ import time
 from datetime import datetime
 import pkg_resources
 
-import credisur.datastructures as datastructures
 import credisur.dateintelligence as dateintelligence
 import credisur.exceladapter as exceladapter
 import credisur.excelbuilder as excelbuilder
@@ -18,12 +17,9 @@ from credisur.config import \
     get_no_payment_due_columns
 from credisur.extractors import \
     customer_row_extractor, \
-    collection_row_extractor, \
-    CollectionsExtractorResults, \
-    bill_row_extractor, \
-    BillExtractorResults
-
-from credisur.models import AccountReceivable, Collection, Collections
+    collection_row_extractor, CollectionsExtractorResults, \
+    bill_row_extractor, BillExtractorResults, \
+    account_receivable_extractor, AccountReceivableExtractorResults
 
 from credisur.bankparser import parse_bank_files
 
@@ -88,10 +84,6 @@ def main(args=None):
     inputs_path = "%s/%s/" % (cwd, params.inputs)
     outputs_path = "%s/%s/" % (cwd, params.outputs)
 
-    # abrir archivos
-    NUEVO = "nuevo"
-    HISTORICO = "histórico"
-
     calendar_ops = dateintelligence.CalendarOperations()
 
     # calendar
@@ -113,12 +105,6 @@ def main(args=None):
     customers_without_payments_due = []
     list_of_advance_payments = []
 
-    accounts_to_collect = {
-        "C": [],
-        "D": [],
-        "I": []
-    }
-
     input_customers_filename = inputs_path + 'Clientes.xlsx'
     input_collections_filename = inputs_path + 'Cobranza.xlsx'
     input_pending_bills_filename = inputs_path + 'Factura.xlsx'
@@ -130,11 +116,6 @@ def main(args=None):
     upgrade_if_older_version(input_accounts_to_collect_filename)
 
     # ExcelReader debería tomar un Stream en vez de un filename - TODO: probar
-    pending_bills_reader = exceladapter.excelreader.ExcelReader(input_pending_bills_filename)
-    accounts_to_collect_reader = exceladapter.excelreader.ExcelReader(input_accounts_to_collect_filename)
-
-    pending_bills_sheet = pending_bills_reader.get_sheet('hoja1')
-    accounts_to_collect_sheet = accounts_to_collect_reader.get_sheet('hoja1')
 
     customer_extractor = tableextraction.DataExtractor(
         input_customers_filename,
@@ -180,63 +161,21 @@ def main(args=None):
     bills = bill_extractor_results.get_bills()
     errors = errors + bill_extractor_results.get_errors()
 
-    accounts_to_collect_unpacker = tableextraction.TableUnpacker(accounts_to_collect_sheet)
+    acc_rec_extractor = tableextraction.DataExtractor(
+        input_accounts_to_collect_filename,
+        'hoja1',
+        AccountReceivableExtractorResults(
+            customers, bills,
+            calendar_ops, first_day_of_current_month, last_date_of_month,
+            collections, collections_for_customers,
+            list_of_advance_payments, customers_without_payments_due, customers_in_last_payment
+        ),
+        account_receivable_extractor
+    )
 
-    for row_unpacker in accounts_to_collect_unpacker.read_rows(2):
-
-        document_date = row_unpacker.get_value_at(1)
-        due_date = row_unpacker.get_value_at(2)
-        document = row_unpacker.get_value_at(3)
-        customer = row_unpacker.get_value_at(4)
-        raw_code = row_unpacker.get_value_at(9)
-
-        if "Cobranza" in document: continue
-        if not raw_code: continue
-        if len(raw_code.split("-")) < 4: continue
-
-        line_amount = float(row_unpacker.get_value_at(8))
-        line_balance = row_unpacker.get_value_at(8)
-
-        customer_data = customers[customer]
-
-        account_receivable = AccountReceivable(document_date, due_date, document,
-                                               customer, raw_code, customer_data, line_amount,
-                                               line_balance, calendar_ops)
-
-        if not account_receivable.is_historic_and_due_for(last_date_of_month):
-            continue
-
-        if not account_receivable.validate_payment_plan(errors):
-            continue
-
-
-        account_receivable.configure_previous_collections(collections, collections_for_customers)
-        account_receivable.compute_last_collection_date()
-
-
-        account_receivable.compute_due_payment(bills, first_day_of_current_month, last_date_of_month)
-
-        account_receivable.validate_low_advance_payment(100, errors)
-        account_receivable.validate_advance_payment(errors)
-
-        account_receivable.add_to_list_if_advance_payments(list_of_advance_payments)
-
-        if not account_receivable.validate_total_sale_amount_and_plan_value(errors):
-            continue
-
-        if not account_receivable.has_due_payments(customers_without_payments_due):
-            continue
-
-        if not account_receivable.validate_person(errors):
-            continue
-
-        account_receivable.add_to_list_if_in_last_payment(customers_in_last_payment, first_day_of_current_month)
-        account_to_collect = account_receivable.to_dict()
-
-        if not account_to_collect['city'] or not account_to_collect['customer']:
-            print("FALTA CIUDAD O CLIENTE:", account_to_collect['city'], account_to_collect['customer'])
-
-        accounts_to_collect[account_to_collect['account']].append(account_to_collect)
+    account_receivable_results = acc_rec_extractor.extract()
+    accounts_to_collect = account_receivable_results.get_accounts_to_collect()
+    errors = errors + account_receivable_results.get_errors()
 
     for error in errors:
         print("ADVERTENCIA:", error)

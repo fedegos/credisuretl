@@ -5,3 +5,6 @@ from .collections_extractor_results import CollectionsExtractorResults
 
 from .bill_row_extractor import bill_row_extractor
 from .bill_extractor_results import BillExtractorResults
+
+from .account_receivable_extractor import account_receivable_extractor
+from .account_receivable_extractor_results import AccountReceivableExtractorResults
