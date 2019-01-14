@@ -16,7 +16,12 @@ from credisur.config import \
     get_advance_payments_columns, \
     get_last_payment_columns, \
     get_no_payment_due_columns
-from credisur.extractors import customer_row_extractor, collection_row_extractor, CollectionsExtractorResults
+from credisur.extractors import \
+    customer_row_extractor, \
+    collection_row_extractor, \
+    CollectionsExtractorResults, \
+    bill_row_extractor, \
+    BillExtractorResults
 
 from credisur.models import AccountReceivable, Collection, Collections
 
@@ -103,7 +108,6 @@ def main(args=None):
             exceladapter.ExcelUpgrader(old_filename).upgrade()
 
     errors = []
-    bills = {}
 
     customers_in_last_payment = []
     customers_without_payments_due = []
@@ -164,50 +168,17 @@ def main(args=None):
                 "reason": "Sin compras abiertas"
             })
 
-    bills_unpacker = tableextraction.TableUnpacker(pending_bills_sheet)
+    bill_extractor = tableextraction.DataExtractor(
+        input_pending_bills_filename,
+        'hoja1',
+        BillExtractorResults(),
+        bill_row_extractor
+    )
 
-    for row_unpacker in bills_unpacker.read_rows(2):
+    bill_extractor_results = bill_extractor.extract()
 
-        document_type = row_unpacker.get_value_at(3)
-        document = row_unpacker.get_value_at(4)
-
-        if document_type == "Factura":
-            document_type = "Factura de Venta"
-
-        document_type_and_number = "%s N° %s" % (document_type, document)
-
-        raw_code = row_unpacker.get_value_at(11)
-        amount = row_unpacker.get_value_at(18)
-
-        if not raw_code:
-            errors.append("Factura sin descripción. Documento: %s" % document)
-            continue
-
-        if len(raw_code.split("-")) < 4:
-            errors.append("Factura con código incorrecto (%s). Documento: %s" % (raw_code, document))
-            continue
-
-        _, _, sales_order, payment_code, *_ = raw_code.split("-")
-
-        if "de" in payment_code:
-            continue
-
-        if not sales_order:
-            error = "Factura sin orden de compra. Documento: %s" % document
-            errors.append(error)
-            continue
-
-        version = NUEVO
-
-        if len(sales_order) != 5:
-            error = "Factura con orden de compra errónea (%s). Documento: %s" % (sales_order, document)
-            errors.append(error)
-
-        if document_type_and_number in bills and version == NUEVO:
-            errors.append("Orden de compra repetida. Documento: %s. Orden de compra: %s" % (document, sales_order))
-            continue
-
-        bills[document_type_and_number] = amount
+    bills = bill_extractor_results.get_bills()
+    errors = errors + bill_extractor_results.get_errors()
 
     accounts_to_collect_unpacker = tableextraction.TableUnpacker(accounts_to_collect_sheet)
 
