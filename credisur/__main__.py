@@ -5,6 +5,8 @@ import time
 from datetime import datetime
 import pkg_resources
 
+from functools import reduce
+
 import credisur.dateintelligence as dateintelligence
 import credisur.exceladapter as exceladapter
 import credisur.excelbuilder as excelbuilder
@@ -14,7 +16,9 @@ from credisur.config import \
     get_columns_configuration, \
     get_advance_payments_columns, \
     get_last_payment_columns, \
-    get_no_payment_due_columns
+    get_no_payment_due_columns, \
+    get_bank_debit_columns
+
 from credisur.extractors import \
     customer_row_extractor, \
     collection_row_extractor, CollectionsExtractorResults, \
@@ -177,6 +181,35 @@ def main(args=None):
     accounts_to_collect = account_receivable_results.get_accounts_to_collect()
     errors = errors + account_receivable_results.get_errors()
 
+
+    all_customers_with_collection = set(
+        list(
+            map(
+                lambda line: line['customer'],
+                reduce(
+                    lambda memo, item: memo + item,
+                    map(
+                        lambda x: x[1],
+                        accounts_to_collect.items()
+                    )
+                )
+            )
+        )
+    )
+
+    for customername, customerdetails in customers.items():
+        if not customername in collections_for_customers:
+            continue
+
+        if not customername in all_customers_with_collection:
+            customers_in_last_payment.append({
+                "city": customerdetails['city'],
+                "customer": customername,
+                "address": customerdetails['address'] or 'Sin dirección',
+                "lastcollection": "No disponible",
+                "reason": "Sin compras abiertas"
+            })
+
     for error in errors:
         print("ADVERTENCIA:", error)
 
@@ -188,7 +221,58 @@ def main(args=None):
     sorted_accounts_D_H = filter(lambda x: x['person'] == 'H', sorted_accounts_D)
     sorted_accounts_D_F = filter(lambda x: x['person'] == 'F', sorted_accounts_D)
 
-    # print("WRONG PERSON ----- ",list(filter(lambda x: x['person'] not in ['H', 'F'], sorted_accounts_D)))
+    def convert_amounts_to_bank_format(receivables):
+        result = []
+
+        for receivable in receivables:
+            receivable['amount'] = str(round(receivable['amount'] * 100)).zfill(8)
+            result.append(receivable)
+
+        return result
+
+
+    def aggregate_amounts_to_collect(receivables):
+        result = {}
+
+        for receivable in receivables:
+            customer = receivable['customer']
+            amount = receivable['amount_to_collect']
+
+            if not customer in result:
+                '''
+                CBU Bloque 1 - surge de la planilla de clientes (CBU)
+                CBU Bloque 2 - surge de la planilla de clientes (CBU)
+                Identificación del cliente - nombre del cliente. Surge de las cuentas a cobrar.
+                Ref. del Crédito? Fijo por cuenta? Tal vez vaya a Datos a generar por el script sin el Excel.
+                Importe (8 enteros + dos decimales sin coma) - suma de monto a cobrar. Surge de las cuentas a cobrar.
+                '''
+
+                cbu = customers[customer]['cbu']
+
+                cbu1 = cbu[0:7]
+                cbu2 = cbu[7:]
+                ref_credit = None
+
+                result[customer] = {}
+                result[customer]['event_type'] = 'D'
+                result[customer]['customer'] = customer
+                result[customer]['cbu1'] = cbu1
+                result[customer]['cbu2'] = cbu2
+                result[customer]['ref_credit'] = ref_credit
+                result[customer]['amount'] = 0
+
+            result[customer]['amount'] += amount
+
+        result = list(result.values())
+        result = convert_amounts_to_bank_format(result)
+
+        return result
+
+    receivables_aggregated_by_customer_D_H = aggregate_amounts_to_collect(sorted_accounts_D_H)
+    receivables_aggregated_by_customer_D_F = aggregate_amounts_to_collect(sorted_accounts_D_F)
+
+    # print(receivables_aggregated_by_customer_D_H)
+    # print(receivables_aggregated_by_customer_D_F)
 
     sorted_accounts_I = sorted(accounts_to_collect['I'],
                                key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
@@ -210,6 +294,14 @@ def main(args=None):
 
     collections_builder_I = excelbuilder.BasicBuilder(sorted_accounts_I, columns_config)
     collections_excelwriter.build_sheet('ICBC', collections_builder_I.build_sheet_data())
+
+    bank_columns_config = get_bank_debit_columns()
+
+    bank_debit_builder_DH = excelbuilder.BasicBuilder(receivables_aggregated_by_customer_D_H, bank_columns_config)
+    collections_excelwriter.build_sheet('Banco Horacio', bank_debit_builder_DH.build_sheet_data())
+
+    bank_debit_builder_DF = excelbuilder.BasicBuilder(receivables_aggregated_by_customer_D_F, bank_columns_config)
+    collections_excelwriter.build_sheet('Banco Facundo', bank_debit_builder_DF.build_sheet_data())
 
     collections_excelwriter.save()
 

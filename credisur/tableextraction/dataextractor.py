@@ -4,6 +4,8 @@ from . import TableUnpacker
 
 class DataExtractor:
 
+    # TODO: separar contexto de results
+
     def __init__(self, filename, sheetname, results_initialization, extract_row, initial_row = 2):
         reader = exceladapter.excelreader.ExcelReader(filename)
         sheet = reader.get_sheet(sheetname)

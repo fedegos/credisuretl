@@ -9,7 +9,7 @@ def parse_bank_files(cwd):
     for filepath in files("."):
         results.extend(list(parse_file(filepath)))
 
-    filepath = cwd + '/../../outputs/' + 'rendicion' + time.strftime("%Y%m%d-%H%M%S") + '.xlsx'
+    filepath = cwd + '/../outputs/' + 'rendicion' + time.strftime("%Y%m%d-%H%M%S") + '.xlsx'
     writer = configure_writer(filepath)
     build_excel(writer, results, bank_columns_config())
     writer.save()
@@ -40,8 +40,8 @@ def parse_line(line):
     cuit_originante = line[1:11]
     sector = line[12:14]
     prestacion = line[15:24]
-    fecha_vencimiento = line[25:32]
-    cbu_bloque_1 = line[33:40]
+    fecha_vencimiento = line[25:33]
+    cbu_bloque_1 = line[33:41]
     filler_cbu_2 = line[41:43]
     cbu_bloque_2 = line[44:58]
     id_cliente = line[58:79]
@@ -99,8 +99,6 @@ def configure_writer(filepath):
     return ExcelWriter(filepath)
 
 def build_excel(excelwriter, transactions, columns_config):
-    print(transactions)
-    print(columns_config)
     builder = excelbuilder.BasicBuilder(transactions, columns_config)
     excelwriter.build_sheet("Resultados Débito", builder.build_sheet_data())
 

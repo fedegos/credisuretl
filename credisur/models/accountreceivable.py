@@ -278,12 +278,6 @@ class AccountReceivable:
         if self.version == HISTORICO:
             return
 
-        '''
-        if self.due_date < first_day_of_current_month:
-            print(self.due_payments_with_current)
-            return
-        '''
-
         if (
                 self.plan == self.current_payment_number and
                 len(self.missing_payment_numbers) == 1 and
