@@ -213,13 +213,13 @@ def main(args=None):
     for error in errors:
         print("ADVERTENCIA:", error)
 
-    sorted_accounts_C = sorted(accounts_to_collect['C'],
-                               key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
+    sorted_accounts_C = list(sorted(accounts_to_collect['C'],
+                               key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime'])))
 
-    sorted_accounts_D = sorted(accounts_to_collect['D'],
-                               key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
-    sorted_accounts_D_H = filter(lambda x: x['person'] == 'H', sorted_accounts_D)
-    sorted_accounts_D_F = filter(lambda x: x['person'] == 'F', sorted_accounts_D)
+    sorted_accounts_D = list(sorted(accounts_to_collect['D'],
+                               key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime'])))
+    sorted_accounts_D_H = list(filter(lambda x: x['person'] == 'H', sorted_accounts_D))
+    sorted_accounts_D_F = list(filter(lambda x: x['person'] == 'F', sorted_accounts_D))
 
     def convert_amounts_to_bank_format(receivables):
         result = []
@@ -248,6 +248,10 @@ def main(args=None):
                 '''
 
                 cbu = customers[customer]['cbu']
+                if not cbu:
+                    cbu = ""
+
+                print(cbu)
 
                 cbu1 = cbu[0:7]
                 cbu2 = cbu[7:]
@@ -274,8 +278,8 @@ def main(args=None):
     # print(receivables_aggregated_by_customer_D_H)
     # print(receivables_aggregated_by_customer_D_F)
 
-    sorted_accounts_I = sorted(accounts_to_collect['I'],
-                               key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime']))
+    sorted_accounts_I = list(sorted(accounts_to_collect['I'],
+                               key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime'])))
 
     # crear excel de cobranzas
     collections_filename = outputs_path + 'cuentas_a_cobrar_' + time.strftime("%Y%m%d-%H%M%S") + '.xlsx'
