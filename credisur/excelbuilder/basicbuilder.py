@@ -3,12 +3,15 @@ def null_item_mapper(item, key):
 
 
 class BasicBuilder:
+
     def __init__(self, data_list, columns_configuration=None):
         self.data_list = data_list
         self.headers = []
         self.column_mappings = {}
         self.header_row = 1
         self.first_data_row = 2
+
+        self.manual_values = {}
 
         if columns_configuration:
             self.configure_columns(columns_configuration)
@@ -33,11 +36,15 @@ class BasicBuilder:
         for column_configuration in list_of_columns:
             self.configure_column(*column_configuration)
 
+    def set_manual_cell(self, cell_position, cell_value):
+        self.manual_values[cell_position] = cell_value
+
     def build_sheet_data(self):
         sheet_data = {}
 
         sheet_data.update(self.__build_headers())
         sheet_data.update(self.__build_data_rows())
+        sheet_data.update(self.manual_values)
 
         return sheet_data
 

@@ -302,9 +302,24 @@ def main(args=None):
     bank_columns_config = get_bank_debit_columns()
 
     bank_debit_builder_DH = excelbuilder.BasicBuilder(receivables_aggregated_by_customer_D_H, bank_columns_config)
+    bank_debit_builder_DH.set_header_row(7)
+    bank_debit_builder_DH.set_first_data_row(8)
+    bank_debit_builder_DH.set_manual_cell("A1", "CUIT")
+    bank_debit_builder_DH.set_manual_cell("A2", "Prestación")
+    bank_debit_builder_DH.set_manual_cell("A3", "Ref del Crédito")
+    bank_debit_builder_DH.set_manual_cell("A4", "Fecha 1er vencimiento")
+    bank_debit_builder_DH.set_manual_cell("A5", "Fecha de proceso")
     collections_excelwriter.build_sheet('Banco Horacio', bank_debit_builder_DH.build_sheet_data())
 
     bank_debit_builder_DF = excelbuilder.BasicBuilder(receivables_aggregated_by_customer_D_F, bank_columns_config)
+    bank_debit_builder_DF.set_header_row(7)
+    bank_debit_builder_DF.set_first_data_row(8)
+    bank_debit_builder_DF.set_manual_cell("A1", "CUIT")
+    bank_debit_builder_DF.set_manual_cell("A2", "Prestación")
+    bank_debit_builder_DF.set_manual_cell("A3", "Ref del Crédito")
+    bank_debit_builder_DF.set_manual_cell("A4", "Fecha 1er vencimiento")
+    bank_debit_builder_DF.set_manual_cell("A5", "Fecha de proceso")
+
     collections_excelwriter.build_sheet('Banco Facundo', bank_debit_builder_DF.build_sheet_data())
 
     collections_excelwriter.save()
