@@ -296,11 +296,21 @@ def main(args=None):
     bank_columns_config = get_bank_debit_columns()
 
     bank_debit_builder_DH = excelbuilder.BasicBuilder(receivables_aggregated_by_customer_D_H, bank_columns_config)
+
     bank_debit_builder_DH.set_header_row(7)
     bank_debit_builder_DH.set_first_data_row(8)
+
     bank_debit_builder_DH.set_manual_cell("A1", "CUIT")
+    bank_debit_builder_DH.set_manual_cell("B1", "27316719517")
+
+    # Horacio: CREDISURII
     bank_debit_builder_DH.set_manual_cell("A2", "Prestación")
+    bank_debit_builder_DH.set_manual_cell("B2", "CREDISURII")
+
+    # CREDISUR
     bank_debit_builder_DH.set_manual_cell("A3", "Ref del Crédito")
+    bank_debit_builder_DH.set_manual_cell("B3", "CREDISUR")
+
     bank_debit_builder_DH.set_manual_cell("A4", "Fecha 1er vencimiento")
     bank_debit_builder_DH.set_manual_cell("A5", "Fecha de proceso")
     bank_debit_builder_DH.add_header("G", "Observaciones")
@@ -310,9 +320,18 @@ def main(args=None):
     bank_debit_builder_DF = excelbuilder.BasicBuilder(receivables_aggregated_by_customer_D_F, bank_columns_config)
     bank_debit_builder_DF.set_header_row(7)
     bank_debit_builder_DF.set_first_data_row(8)
+
     bank_debit_builder_DF.set_manual_cell("A1", "CUIT")
+    bank_debit_builder_DF.set_manual_cell("B1", "20292879742")
+
+    # Facundo: V.MUEBLES
     bank_debit_builder_DF.set_manual_cell("A2", "Prestación")
+    bank_debit_builder_DF.set_manual_cell("B2", "V.MUEBLES")
+
+    # CREDISUR
     bank_debit_builder_DF.set_manual_cell("A3", "Ref del Crédito")
+    bank_debit_builder_DF.set_manual_cell("B3", "CREDISUR")
+
     bank_debit_builder_DF.set_manual_cell("A4", "Fecha 1er vencimiento")
     bank_debit_builder_DF.set_manual_cell("A5", "Fecha de proceso")
     bank_debit_builder_DF.add_header("G", "Observaciones")
