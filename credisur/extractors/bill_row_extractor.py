@@ -2,6 +2,7 @@ from credisur.models import Bill
 
 
 def bill_row_extractor(results, unpacker):
+
     errors = results.get_errors()
     bills = results.get_bills()
 
@@ -11,6 +12,7 @@ def bill_row_extractor(results, unpacker):
     amount = unpacker.get_value_at(18)
 
     bill = Bill(document_type, document, raw_code, amount, errors)
+
     if bill.should_skip():
         return
 

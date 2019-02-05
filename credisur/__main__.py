@@ -239,14 +239,6 @@ def main(args=None):
             amount = receivable['amount_to_collect']
 
             if not customer in result:
-                '''
-                CBU Bloque 1 - surge de la planilla de clientes (CBU)
-                CBU Bloque 2 - surge de la planilla de clientes (CBU)
-                Identificación del cliente - nombre del cliente. Surge de las cuentas a cobrar.
-                Ref. del Crédito? Fijo por cuenta? Tal vez vaya a Datos a generar por el script sin el Excel.
-                Importe (8 enteros + dos decimales sin coma) - suma de monto a cobrar. Surge de las cuentas a cobrar.
-                '''
-
                 cbu = customers[customer]['cbu']
                 if not cbu:
                     cbu = ""
@@ -268,7 +260,9 @@ def main(args=None):
             result[customer]['amount'] += amount
 
         result = list(result.values())
-        result = convert_amounts_to_bank_format(result)
+
+        # TODO: La conversión se va a hacer únicamente para el TXT del banco.
+        # result = convert_amounts_to_bank_format(result)
 
         return result
 
