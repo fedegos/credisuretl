@@ -308,12 +308,12 @@ def main(args=None):
     bank_debit_builder_DH.set_manual_cell("B2", "CREDISURII")
 
     # CREDISUR
-    bank_debit_builder_DH.set_manual_cell("A3", "Ref del Crédito")
+    bank_debit_builder_DH.set_manual_cell("A3", "Ref del Débito")
     bank_debit_builder_DH.set_manual_cell("B3", "CREDISUR")
 
     bank_debit_builder_DH.set_manual_cell("A4", "Fecha 1er vencimiento")
     bank_debit_builder_DH.set_manual_cell("A5", "Fecha de proceso")
-    bank_debit_builder_DH.add_header("G", "Observaciones")
+    bank_debit_builder_DH.add_header("F", "Observaciones")
 
     collections_excelwriter.build_sheet('Banco Horacio', bank_debit_builder_DH.build_sheet_data())
 
@@ -329,12 +329,12 @@ def main(args=None):
     bank_debit_builder_DF.set_manual_cell("B2", "V.MUEBLES")
 
     # CREDISUR
-    bank_debit_builder_DF.set_manual_cell("A3", "Ref del Crédito")
+    bank_debit_builder_DF.set_manual_cell("A3", "Ref del Débito")
     bank_debit_builder_DF.set_manual_cell("B3", "CREDISUR")
 
     bank_debit_builder_DF.set_manual_cell("A4", "Fecha 1er vencimiento")
     bank_debit_builder_DF.set_manual_cell("A5", "Fecha de proceso")
-    bank_debit_builder_DF.add_header("G", "Observaciones")
+    bank_debit_builder_DF.add_header("F", "Observaciones")
 
     collections_excelwriter.build_sheet('Banco Facundo', bank_debit_builder_DF.build_sheet_data())
 
