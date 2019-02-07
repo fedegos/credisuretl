@@ -19,12 +19,14 @@ from credisur.config import \
     get_no_payment_due_columns, \
     get_bank_debit_columns
 
+
 from credisur.extractors import \
     customer_row_extractor, \
     collection_row_extractor, CollectionsExtractorResults, \
     bill_row_extractor, BillExtractorResults, \
     account_receivable_extractor, AccountReceivableExtractorResults
 
+from credisur.debitsgenerator import generate_debits
 from credisur.bankparser import parse_bank_files
 
 # TODO: Copiar listado de facturas en solapa.
@@ -83,6 +85,10 @@ def main(args=None):
 
     if params.banco:
         parse_bank_files(cwd)
+        return
+
+    if params.debitos:
+        generate_debits(cwd)
         return
 
     inputs_path = "%s/%s/" % (cwd, params.inputs)
