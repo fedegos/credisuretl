@@ -1,3 +1,5 @@
+import time
+
 from .errornotification import ErrorNotification
 
 from .filenamebuilder import build_file_name
@@ -10,7 +12,8 @@ from .parsers import (
 )
 
 from .validators import (
-    validate_headers, validate_lines
+    validate_headers, validate_lines,
+    validate_file
 )
 
 from .notifyerrors import notify_errors
@@ -22,11 +25,16 @@ from .writers import (
 
 
 def generate_debits(cwd):
-
     for notification in execute_generation(cwd):
         if notification.has_errors():
-            notify_errors(notification)
+            handle_errors(cwd, notification)
             return
+
+
+def handle_errors(cwd, notification):
+    errors_filename = cwd + '/../outputs/debit_errors_' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
+    with open(errors_filename, 'w') as stream:
+        notify_errors(notification, stream)
 
 
 def execute_generation(cwd):
@@ -34,21 +42,21 @@ def execute_generation(cwd):
 
     excel_path = cwd + "/generar_debitos.xlsx"
 
+    notification.collect_notifications(validate_file(excel_path))
+
+    yield notification
+
     raw_data = read_debits_excel(excel_path)
 
     # procesar cabeceras de excel
     for page_data in raw_data:
 
         header_data = parse_debits_headers(page_data)
-
         notification.collect_notifications(validate_headers(header_data))
-
         yield notification
 
         debits_data = parse_debits_lines(page_data)
-
         notification.collect_notifications(validate_lines(debits_data))
-
         yield notification
 
         last_line = calculate_last_line(header_data, debits_data)

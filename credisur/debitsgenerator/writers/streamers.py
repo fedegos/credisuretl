@@ -1,6 +1,10 @@
 
 def stream_headers(header_data, stream):
     line = parse_header(header_data)
+
+    if not line:
+        return
+
     stream.write(line)
 
 
@@ -14,11 +18,15 @@ def stream_lines(debits_data, stream):
 
 
 def parse_lines(debits_data):
-    pass
+    return []
 
 
 def stream_last_line(last_line, stream):
     line = parse_last_line(last_line)
+
+    if not line:
+        return
+
     stream.write(line)
 
 
