@@ -8,7 +8,7 @@ class ErrorNotification:
     def notify_error(self,error):
         self.errors.append(error)
 
-    def concat_errors(self, notification):
+    def collect_notifications(self, notification):
         for error in notification.iterate_errors():
             self.notify_error(error)
 

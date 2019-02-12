@@ -1,3 +1,6 @@
+from .errorsiterator import ErrorsIterator
 
 def validate_headers(raw_data, notification):
-    pass
+    errors = ErrorsIterator()
+
+    return errors

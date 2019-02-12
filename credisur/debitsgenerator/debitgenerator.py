@@ -17,8 +17,7 @@ def generate_debits(cwd):
         if notification.has_errors():
             notify_errors(notification)
             return
-
-    pass
+    
 
 def execute_generation(cwd):
     # leer excel (definir nombre)
@@ -38,29 +37,31 @@ def execute_generation(cwd):
     raw_data = read_debits_excel(excel_path)
 
     # procesar cabeceras de excel
+    for page in raw_data:
 
-    header_data = parse_debits_headers(raw_data) # a collection of headers per debit account
+        header_data = parse_debits_headers(raw_data) # a collection of headers per debit account
 
-    validate_headers(header_data, notification)
+        notification.collect_notifications(validate_headers(header_data))
 
-    yield notification
+        yield notification
 
-    debits_data = parse_debits_lines(raw_data) # a collection of debit lines per debit account
+        debits_data = parse_debits_lines(raw_data) # a collection of debit lines per debit account
 
-    validate_lines(debits_data, notification)
+        notification.collect_notifications(validate_lines(debits_data))
 
-    yield notification
+        yield notification
 
-    # output
-    # for debits page:
-    # file_headers = build_file_headers(header_data)
-    # file_lines = build_
+        # output
+        # for debits page:
 
-    # contruir cabeceras de txt
+        # file_headers = build_file_headers(header_data)
+        # file_lines = build_
 
-    # construir líneas (cabeceras + filas)
+        # contruir cabeceras de txt
 
-    # construir último registro
+        # construir líneas (cabeceras + filas)
+
+        # construir último registro
 
 
-    # guardar archivos separados por cuenta
+        # guardar archivos separados por cuenta

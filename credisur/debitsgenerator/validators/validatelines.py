@@ -1,3 +1,7 @@
+from .errorsiterator import ErrorsIterator
+
 
 def validate_lines(debits_data):
-    pass
+    errors = ErrorsIterator()
+
+    return errors
