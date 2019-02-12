@@ -1,4 +1,4 @@
 
 
-def parse_debits_headers(raw_data):
+def parse_debits_headers(page_data):
     pass

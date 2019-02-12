@@ -1,14 +1,24 @@
 from .errornotification import ErrorNotification
 
+from .filenamebuilder import build_file_name
+
 from .readdebitsexcel import read_debits_excel
 
-from .parsers import parse_debits_headers
-from .parsers import parse_debits_lines
+from .parsers import (
+    parse_debits_headers, parse_debits_lines,
+    calculate_last_line
+)
 
-from .validators import validate_headers
-from .validators import validate_lines
+from .validators import (
+    validate_headers, validate_lines
+)
 
 from .notifyerrors import notify_errors
+
+from .writers import (
+    stream_headers, stream_lines,
+    stream_last_line
+)
 
 
 def generate_debits(cwd):
@@ -17,19 +27,9 @@ def generate_debits(cwd):
         if notification.has_errors():
             notify_errors(notification)
             return
-    
+
 
 def execute_generation(cwd):
-    # leer excel (definir nombre)
-
-    # checkear si están disponibles todos los datos de las cabeceras
-    # arrojar errores si falta algo
-
-    # procesar filas de excel
-
-    # checkear si están disponibles todos los datos de las filas
-    # arrojar errores si falta algo
-
     notification = ErrorNotification()
 
     excel_path = cwd + "/generar_debitos.xlsx"
@@ -37,31 +37,25 @@ def execute_generation(cwd):
     raw_data = read_debits_excel(excel_path)
 
     # procesar cabeceras de excel
-    for page in raw_data:
+    for page_data in raw_data:
 
-        header_data = parse_debits_headers(raw_data) # a collection of headers per debit account
+        header_data = parse_debits_headers(page_data)
 
         notification.collect_notifications(validate_headers(header_data))
 
         yield notification
 
-        debits_data = parse_debits_lines(raw_data) # a collection of debit lines per debit account
+        debits_data = parse_debits_lines(page_data)
 
         notification.collect_notifications(validate_lines(debits_data))
 
         yield notification
 
-        # output
-        # for debits page:
+        last_line = calculate_last_line(header_data, debits_data)
 
-        # file_headers = build_file_headers(header_data)
-        # file_lines = build_
+        filename = build_file_name(cwd, header_data)
 
-        # contruir cabeceras de txt
-
-        # construir líneas (cabeceras + filas)
-
-        # construir último registro
-
-
-        # guardar archivos separados por cuenta
+        with open(filename, 'w') as file_stream:
+            stream_headers(header_data, file_stream)
+            stream_lines(debits_data, file_stream)
+            stream_last_line(last_line, file_stream)

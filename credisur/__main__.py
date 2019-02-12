@@ -12,19 +12,20 @@ import credisur.exceladapter as exceladapter
 import credisur.excelbuilder as excelbuilder
 import credisur.tableextraction as tableextraction
 
-from credisur.config import \
-    get_columns_configuration, \
-    get_advance_payments_columns, \
-    get_last_payment_columns, \
-    get_no_payment_due_columns, \
-    get_bank_debit_columns
+from credisur.config import (
+    get_columns_configuration,
+    get_advance_payments_columns,
+    get_last_payment_columns,
+    get_no_payment_due_columns,
+    get_bank_debit_columns)
 
 
-from credisur.extractors import \
-    customer_row_extractor, \
-    collection_row_extractor, CollectionsExtractorResults, \
-    bill_row_extractor, BillExtractorResults, \
+from credisur.extractors import (
+    customer_row_extractor,
+    collection_row_extractor, CollectionsExtractorResults,
+    bill_row_extractor, BillExtractorResults,
     account_receivable_extractor, AccountReceivableExtractorResults
+)
 
 from credisur.debitsgenerator import generate_debits
 from credisur.bankparser import parse_bank_files
@@ -50,6 +51,9 @@ def get_parser():
     parser.add_argument("--version", "-v", help="Muestra la versión.", action="store_true")
 
     parser.add_argument("--banco", "-b", help="Procesa los archivos del banco disponibles en la carpeta.",
+                        action="store_true")
+
+    parser.add_argument("--debitos", "-D", help="Genera los archivos TXT de débitos para enviar al banco.",
                         action="store_true")
 
     parser.add_argument("--inputs", "-i", help="Permite definir la carpeta de inputs", default="inputs")
