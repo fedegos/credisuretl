@@ -10,12 +10,19 @@ def parse_debits_lines(page_data):
         debit_lines.append(DebitLine(line_mapping))
 
     for line in debit_lines:
-        print(line.cbu_bloque_1, line.cbu_bloque_2, line.monto)
+        # print(line.cbu_bloque_1, line.cbu_bloque_2, line.monto)
+        pass
 
     return debit_lines
 
 
 def map_line(row, page_data):
+    raw_amount = page_data.cell(row=row, column=5).value
+    amount = None
+
+    if raw_amount:
+        amount = format_amount(raw_amount)
+
     return {
         'sheet_name': page_data.title,
         'row': row,
@@ -23,7 +30,8 @@ def map_line(row, page_data):
         'cbu_bloque_1':  page_data.cell(row=row, column=2).value,
         'cbu_bloque_2': page_data.cell(row=row, column=3).value,
         'id_cliente': page_data.cell(row=row, column=4).value,
-        'monto': format_amount(page_data.cell(row=row, column=5).value),
+        'monto': amount,
+        'monto_numero': raw_amount
     }
 
 
@@ -41,6 +49,7 @@ class DebitLine:
         self._cbu_bloque_2 = line_mapping['cbu_bloque_2']
         self._id_cliente = line_mapping['id_cliente']
         self._monto = line_mapping['monto']
+        self._monto_numero = line_mapping['monto_numero']
 
 
     @property
@@ -76,3 +85,8 @@ class DebitLine:
     @property
     def monto(self):
         return self._monto
+
+
+    @property
+    def monto_numero(self):
+        return self._monto_numero
