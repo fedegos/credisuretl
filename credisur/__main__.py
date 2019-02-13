@@ -255,8 +255,8 @@ def main(args=None):
 
                 print(cbu)
 
-                cbu1 = cbu[0:7]
-                cbu2 = cbu[7:]
+                cbu1 = cbu[0:8]
+                cbu2 = cbu[8:]
                 ref_credit = None
 
                 result[customer] = {}

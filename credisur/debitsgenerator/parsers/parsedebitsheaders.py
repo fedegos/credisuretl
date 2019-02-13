@@ -1,4 +1,4 @@
-
+import datetime
 
 def parse_debits_headers(page_data):
     headers_mapping = map_headers(page_data)
@@ -23,6 +23,10 @@ class Header:
         self._primer_vencimiento = headers_map['primer_vencimiento']
         self._fecha_proceso = headers_map['fecha_proceso']
 
+    def format_date(self, a_date):
+        if type(a_date) is str:
+            a_date = datetime.datetime.strptime(a_date, "%Y-%m-%d %h:%m:%s")
+        return a_date.strftime("%d%m%Y")
 
     @property
     def sheet_name(self):
@@ -42,8 +46,14 @@ class Header:
 
     @property
     def primer_vencimiento(self):
-        return self._primer_vencimiento
+        if not self._primer_vencimiento:
+            return None
+
+        return self.format_date(self._primer_vencimiento)
 
     @property
     def fecha_proceso(self):
-        return self._fecha_proceso
+        if not self._fecha_proceso:
+            return None
+
+        return self.format_date(self._fecha_proceso)

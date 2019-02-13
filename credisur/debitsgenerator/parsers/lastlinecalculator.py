@@ -12,7 +12,6 @@ def calculate_last_line(header_data, debits_data):
 
     return LastLine(process_date, monetary_records, total_amount)
 
-
 def format_amount(amount):
     return str(round(amount * 100)).zfill(10)
 
@@ -23,10 +22,6 @@ def format_total_number_of_records(number):
 
 def format_number_of_records(number):
     return str(number).zfill(7)
-
-
-def format_date(a_date):
-    return a_date.strftime("%d%m%Y")
 
 
 class LastLine:
@@ -43,7 +38,7 @@ class LastLine:
         self._registros_monetarios = format_number_of_records(registros_monetarios)
         self._registros_no_monetarios = format_number_of_records(0)
         self._registros_totales = format_total_number_of_records(registros_monetarios)
-        self._process_date = format_date(fecha_proceso)
+        self._process_date = fecha_proceso
         self._suma_importes_registros = format_amount(suma_importes_registros)
 
 
