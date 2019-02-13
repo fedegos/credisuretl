@@ -3,13 +3,22 @@ from .errorsiterator import ErrorsIterator
 def validate_lines(debits_data):
     errors = ErrorsIterator()
 
-    map_func = validate_line_func(errors)
+    validate_func = validate_line_func(errors)
 
-    map(map_func, debits_data)
+    for line in debits_data:
+        validate_func(line)
 
     return errors
 
 def validate_line_func(errors):
+
+    fields = {
+        'tipo_novedad': 'Tipo Novedad',
+        'cbu_bloque_1': 'CBU Bloque 1',
+        'cbu_bloque_2': 'CBU Bloque 2',
+        'id_cliente': 'ID Cliente',
+        'monto': 'Monto',
+    }
 
     def validate_line(line):
         """
@@ -23,19 +32,13 @@ def validate_line_func(errors):
         def add_error(error):
             errors.add_error(error + " en fila %s de solapa %s" % (row, sheet_name))
 
-        if not line.tipo_novedad:
-            add_error("Falta el 'Tipo Novedad'")
-
-        if not line.cbu_bloque_1:
-            add_error("Falta el 'CBU Bloque 1'")
-
-        if not line.cbu_bloque_2:
-            add_error("Falta el 'CBU Bloque 2'")
-
-        if not line.id_cliente:
-            add_error("Falta el 'ID Cliente'")
-
-        if not line.monto:
-            add_error("Falta el 'Monto'")
+        check_for_presence(line, fields, add_error)
 
     return validate_line
+
+
+def check_for_presence(line, fields, err_func):
+    for field, error_message in fields.items():
+        if not getattr(line, field):
+            err_func("Falta el tipo '%s'" % (error_message,))
+
