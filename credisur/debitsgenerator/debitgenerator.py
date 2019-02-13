@@ -19,8 +19,7 @@ from .validators import (
 from .notifyerrors import notify_errors
 
 from .writers import (
-    stream_headers, stream_lines,
-    stream_last_line
+    stream_lines, stream_last_line
 )
 
 
@@ -64,6 +63,5 @@ def execute_generation(cwd):
         filename = build_file_name(cwd, header_data)
 
         with open(filename, 'w') as file_stream:
-            stream_headers(header_data, file_stream)
-            stream_lines(debits_data, file_stream)
+            stream_lines(header_data, debits_data, file_stream)
             stream_last_line(last_line, file_stream)
