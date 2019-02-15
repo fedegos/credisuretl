@@ -36,7 +36,7 @@ def map_line(row, page_data):
 
 
 def format_amount(amount):
-    return str(round(amount * 100)).zfill(8)
+    return str(round(amount * 100)).zfill(10)
 
 
 class DebitLine:
