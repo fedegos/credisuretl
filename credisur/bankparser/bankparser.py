@@ -6,6 +6,11 @@ import time
 def parse_bank_files(cwd):
     results = list()
 
+    if not os.path.isdir(cwd + '/../outputs/'):
+        missing_path = ("/".join(cwd.split("/")[:-1]) + '/outputs/').replace("/", "\\")
+        print ("ERROR: El directorio %s no existe" % (missing_path,))
+        return
+
     for filepath in files("."):
         results.extend(list(parse_file(filepath)))
 
