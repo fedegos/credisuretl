@@ -38,7 +38,7 @@ class LastLine:
         self._registros_monetarios = format_number_of_records(registros_monetarios)
         self._registros_no_monetarios = format_number_of_records(0)
         self._registros_totales = format_total_number_of_records(registros_monetarios)
-        self._process_date = fecha_proceso
+        self._fecha_proceso = fecha_proceso
         self._suma_importes_registros = format_amount(suma_importes_registros)
 
 
