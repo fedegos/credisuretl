@@ -4,17 +4,18 @@ from credisur.exceladapter import ExcelWriter
 import time
 
 def parse_bank_files(cwd):
+    print("parse_bank_files")
     results = list()
 
-    if not os.path.isdir(cwd + '/../outputs/'):
-        missing_path = ("/".join(cwd.split("/")[:-1]) + '/outputs/').replace("/", "\\")
+    if not os.path.isdir(cwd + '/outputs/'):
+        missing_path = ("/".join(cwd.split("/")) + '/outputs/')
         print ("ERROR: El directorio %s no existe" % (missing_path,))
         return
 
-    for filepath in files("."):
+    for filepath in files("inputs/"):
         results.extend(list(parse_file(filepath)))
 
-    filepath = cwd + '/../outputs/' + 'rendicion' + time.strftime("%Y%m%d-%H%M%S") + '.xlsx'
+    filepath = cwd + '/outputs/' + 'rendicion' + time.strftime("%Y%m%d-%H%M%S") + '.xlsx'
     writer = configure_writer(filepath)
     build_excel(writer, results, bank_columns_config())
     writer.save()
@@ -62,6 +63,7 @@ def parse_line(line):
     codigo_rechazos = line[173:175]
 
     if not tipo_de_novedad == "D":
+        print(tipo_de_novedad)
         return
 
     return {
