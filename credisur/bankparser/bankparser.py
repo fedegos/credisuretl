@@ -60,7 +60,7 @@ def parse_line(line):
     fecha_tercer_vencimiento = line[133:140]
     importe_tercer_vencimiento = line[141:150]
     identificador_pagador_nuevo = line[151:172]
-    codigo_rechazos = line[173:175]
+    codigo_rechazos = line[173:176]
 
     if not tipo_de_novedad == "D":
         print(tipo_de_novedad)
