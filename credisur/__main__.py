@@ -247,13 +247,13 @@ def main(args=None):
         for receivable in receivables:
             customer = receivable['customer']
             amount = receivable['amount_to_collect']
+            payment = receivable['payment']
+            last_collection = receivable['last_collection']
 
             if not customer in result:
                 cbu = customers[customer]['cbu']
                 if not cbu:
                     cbu = ""
-
-                print(cbu)
 
                 cbu1 = cbu[0:8]
                 cbu2 = cbu[8:]
@@ -266,22 +266,20 @@ def main(args=None):
                 result[customer]['cbu2'] = cbu2
                 result[customer]['ref_credit'] = ref_credit
                 result[customer]['amount'] = 0
+                result[customer]['total_payment'] = 0
+                result[customer]['last_collection'] = last_collection
 
-            result[customer]['amount'] += amount
+            result[customer]['total_payment'] += amount
+            result[customer]['amount'] += min(amount, payment)
 
         result = list(result.values())
-
-        # TODO: La conversión se va a hacer únicamente para el TXT del banco.
-        # result = convert_amounts_to_bank_format(result)
 
         return result
 
     receivables_aggregated_by_customer_D_H = aggregate_amounts_to_collect(sorted_accounts_D_H)
     receivables_aggregated_by_customer_D_F = aggregate_amounts_to_collect(sorted_accounts_D_F)
 
-    # print(receivables_aggregated_by_customer_D_H)
-    # print(receivables_aggregated_by_customer_D_F)
-
+    
     sorted_accounts_I = list(sorted(accounts_to_collect['I'],
                                key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime'])))
 

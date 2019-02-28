@@ -6,4 +6,6 @@ def get_bank_debit_columns():
     config_list.append(("D", "Identificación del cliente", 'customer'))
 #    config_list.append(("E", "Ref. del débito", 'ref_credit'))
     config_list.append(("E", "Importe", 'amount'))
+    config_list.append(("G", "Deuda total", 'total_payment'))
+    config_list.append(("H", "Última Cobranza", 'last_collection'))
     return config_list
