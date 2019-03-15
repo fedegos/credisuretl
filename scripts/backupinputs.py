@@ -12,13 +12,13 @@ def main(args):
 
     inputs_path = "../inputs"
 
-    dated_dir_path = join(inputs_path, "backups", time.strftime("%Y %m %d"))
+    dated_dir_path = join(os.getcwd(), inputs_path, "backups", time.strftime("%Y %m %d"))
 
     if(os.path.isdir(dated_dir_path)):
         print("Folder already exists.")
         return
 
-    os.mkdir(dated_dir_path)
+    os.makedirs(dated_dir_path, mode=0o777)
 
     onlyfiles = [f for f in listdir(inputs_path) if isfile(join(inputs_path, f))]
     for file in onlyfiles:
