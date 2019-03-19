@@ -230,15 +230,9 @@ def main(args=None):
                                key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime'])))
     sorted_accounts_D_H = list(filter(lambda x: x['person'] == 'H', sorted_accounts_D))
     sorted_accounts_D_F = list(filter(lambda x: x['person'] == 'F', sorted_accounts_D))
+    sorted_accounts_I = list(sorted(accounts_to_collect['I'],
+                               key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime'])))
 
-    def convert_amounts_to_bank_format(receivables):
-        result = []
-
-        for receivable in receivables:
-            receivable['amount'] = str(round(receivable['amount'] * 100)).zfill(8)
-            result.append(receivable)
-
-        return result
 
 
     def aggregate_amounts_to_collect(receivables):
@@ -278,11 +272,8 @@ def main(args=None):
 
     receivables_aggregated_by_customer_D_H = aggregate_amounts_to_collect(sorted_accounts_D_H)
     receivables_aggregated_by_customer_D_F = aggregate_amounts_to_collect(sorted_accounts_D_F)
-
+    receivables_aggregated_by_customer_I = aggregate_amounts_to_collect(sorted_accounts_I)
     
-    sorted_accounts_I = list(sorted(accounts_to_collect['I'],
-                               key=lambda x: (x['city'], x['customer'], x['order'], x['due_date_datetime'])))
-
     # crear excel de cobranzas
     collections_filename = outputs_path + 'cuentas_a_cobrar_' + time.strftime("%Y%m%d-%H%M%S") + '.xlsx'
     collections_excelwriter = exceladapter.ExcelWriter(collections_filename)
@@ -345,6 +336,27 @@ def main(args=None):
     bank_debit_builder_DF.add_header("F", "Observaciones")
 
     collections_excelwriter.build_sheet('Banco Facundo', bank_debit_builder_DF.build_sheet_data())
+
+    bank_debit_builder_I = excelbuilder.BasicBuilder(receivables_aggregated_by_customer_I, bank_columns_config)
+    bank_debit_builder_I.set_header_row(7)
+    bank_debit_builder_I.set_first_data_row(8)
+
+    bank_debit_builder_I.set_manual_cell("A1", "CUIT")
+    bank_debit_builder_I.set_manual_cell("B1", "20292879742")
+
+    # ICBC: V.MUEBLES
+    bank_debit_builder_I.set_manual_cell("A2", "Prestación")
+    bank_debit_builder_I.set_manual_cell("B2", "V.MUEBLES")
+
+    # CREDISUR
+    bank_debit_builder_I.set_manual_cell("A3", "Ref del Débito")
+    bank_debit_builder_I.set_manual_cell("B3", "D MUEBLES")
+
+    bank_debit_builder_I.set_manual_cell("A4", "Fecha 1er vencimiento")
+    bank_debit_builder_I.set_manual_cell("A5", "Fecha de proceso")
+    bank_debit_builder_I.add_header("F", "Observaciones")
+
+    collections_excelwriter.build_sheet('Banco ICBC', bank_debit_builder_I.build_sheet_data())
 
     collections_excelwriter.save()
 

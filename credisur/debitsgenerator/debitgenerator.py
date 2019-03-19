@@ -40,7 +40,7 @@ def handle_errors(cwd, notification):
 def execute_generation(cwd):
     notification = ErrorNotification()
 
-    excel_path = os.path.join(cwd,"inputs", "generar_debitos.xlsx")
+    excel_path = os.path.join(cwd, "inputs", "generar_debitos.xlsx")
 
     notification.collect_notifications(validate_file(excel_path))
 
