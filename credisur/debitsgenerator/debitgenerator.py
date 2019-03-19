@@ -1,4 +1,5 @@
 import time
+import os
 
 from .errornotification import ErrorNotification
 
@@ -31,7 +32,7 @@ def generate_debits(cwd):
 
 
 def handle_errors(cwd, notification):
-    errors_filename = cwd + '/../outputs/debit_errors_' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
+    errors_filename = os.path.join(cwd,'outputs/debit_errors_' + time.strftime("%Y%m%d-%H%M%S") + '.txt')
     with open(errors_filename, 'w') as stream:
         notify_errors(notification, stream)
 
@@ -39,7 +40,7 @@ def handle_errors(cwd, notification):
 def execute_generation(cwd):
     notification = ErrorNotification()
 
-    excel_path = cwd + "/generar_debitos.xlsx"
+    excel_path = os.path.join(cwd,"inputs", "generar_debitos.xlsx")
 
     notification.collect_notifications(validate_file(excel_path))
 
