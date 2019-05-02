@@ -14,10 +14,10 @@ def main(args):
     '''
     dated_dir_path = join(outputs_path, time.strftime("%Y %m %d"))
     os.mkdir(dated_dir_path)
-    '''
+    '''    
 
     onlyfiles = [f for f in listdir(outputs_path) if isfile(join(outputs_path, f))]
-    for file in onlyfiles:
+    for file in onlyfiles:        
         os.rename(join(outputs_path, file), join(outputs_path, "backups", file))
 
 
