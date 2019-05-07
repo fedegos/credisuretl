@@ -9,7 +9,7 @@ import time
 
 def main(args):
 
-    outputs_path = "../outputs"
+    outputs_path = join(os.path.dirname(os.path.realpath(__file__)), "..", "outputs")
 
     '''
     dated_dir_path = join(outputs_path, time.strftime("%Y %m %d"))
