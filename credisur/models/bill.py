@@ -31,6 +31,11 @@ class Bill:
         if "de" in self.payment_code:
             self.skip = True
             return
+        '''
+        if self.sales_order == "NO":
+            self.skip = True
+            return
+        '''
 
         if not self.sales_order:
             error = "Factura sin orden de compra. Documento: %s" % document
@@ -39,8 +44,9 @@ class Bill:
 
         self.version = NUEVO
 
-        if len(self.sales_order) != 5:
-            error = "Factura con orden de compra errónea (%s). Documento: %s" % (self.sales_order, self.document)
+        if self.sales_order != "NO" and len(self.sales_order) != 5:
+            error = "Factura con orden de compra errónea (%s). Documento: %s" % (self.sales_order, self.document)            
+            print(error)
             self.append_error(errors, error)
             return
 
