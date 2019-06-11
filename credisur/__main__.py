@@ -346,7 +346,7 @@ def main(args=None):
 
     # ICBC: V.MUEBLES
     bank_debit_builder_I.set_manual_cell("A2", "Prestación")
-    bank_debit_builder_I.set_manual_cell("B2", "V.MUEBLES")
+    bank_debit_builder_I.set_manual_cell("B2", "D MUEBLES")
 
     # CREDISUR
     bank_debit_builder_I.set_manual_cell("A3", "Ref del Débito")
