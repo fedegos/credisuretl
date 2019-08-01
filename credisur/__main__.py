@@ -214,12 +214,23 @@ def main(args=None):
         if not customername in collections_for_customers:
             continue
 
+        collection_for_this_customer = collections_for_customers[customername]
+
+        if len(collection_for_this_customer) > 0:
+            last_collection_date_for_this_customer = sorted(
+                collection_for_this_customer,
+                key=lambda x: x['date'],
+                reverse=True
+            )[0]['date'].strftime("%d/%m/%Y")
+        else:
+            last_collection_date_for_this_customer = "No disponible"
+            
         if not customername in all_customers_with_collection:
             customers_in_last_payment.append({
                 "city": customerdetails['city'],
                 "customer": customername,
                 "address": customerdetails['address'] or 'Sin dirección',
-                "lastcollection": "No disponible",
+                "lastcollection": last_collection_date_for_this_customer,
                 "reason": "Sin compras abiertas",
                 "payment": "-"
             })
