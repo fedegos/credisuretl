@@ -153,6 +153,8 @@ def main(args=None):
     collections_for_customers = collection_extraction_results.get_collections_for_customers()
     errors = errors + collection_extraction_results.get_errors()
 
+
+    # TODO: ¿cómo sabemos que no tiene compras abiertas?
     for customername, customerdetails in customers.items():
         if not customername in collections_for_customers:
             customers_in_last_payment.append({
@@ -160,7 +162,8 @@ def main(args=None):
                 "customer": customername,
                 "address": customerdetails['address'] or 'Sin dirección',
                 "lastcollection": "No disponible",
-                "reason": "Sin compras abiertas"
+                "reason": "Sin compras abiertas",
+                "payment": "-"
             })
 
     bill_extractor = tableextraction.DataExtractor(
@@ -217,7 +220,8 @@ def main(args=None):
                 "customer": customername,
                 "address": customerdetails['address'] or 'Sin dirección',
                 "lastcollection": "No disponible",
-                "reason": "Sin compras abiertas"
+                "reason": "Sin compras abiertas",
+                "payment": "-"
             })
 
     for error in errors:
