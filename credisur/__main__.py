@@ -153,6 +153,8 @@ def main(args=None):
     collections_for_customers = collection_extraction_results.get_collections_for_customers()
     errors = errors + collection_extraction_results.get_errors()
 
+
+    # TODO: ¿cómo sabemos que no tiene compras abiertas?
     for customername, customerdetails in customers.items():
         if not customername in collections_for_customers:
             customers_in_last_payment.append({
@@ -160,7 +162,8 @@ def main(args=None):
                 "customer": customername,
                 "address": customerdetails['address'] or 'Sin dirección',
                 "lastcollection": "No disponible",
-                "reason": "Sin compras abiertas"
+                "reason": "Sin compras abiertas",
+                "payment": "-"
             })
 
     bill_extractor = tableextraction.DataExtractor(
@@ -211,13 +214,25 @@ def main(args=None):
         if not customername in collections_for_customers:
             continue
 
+        collection_for_this_customer = collections_for_customers[customername]
+
+        if len(collection_for_this_customer) > 0:
+            last_collection_date_for_this_customer = sorted(
+                collection_for_this_customer,
+                key=lambda x: x['date'],
+                reverse=True
+            )[0]['date'].strftime("%d/%m/%Y")
+        else:
+            last_collection_date_for_this_customer = "No disponible"
+            
         if not customername in all_customers_with_collection:
             customers_in_last_payment.append({
                 "city": customerdetails['city'],
                 "customer": customername,
                 "address": customerdetails['address'] or 'Sin dirección',
-                "lastcollection": "No disponible",
-                "reason": "Sin compras abiertas"
+                "lastcollection": last_collection_date_for_this_customer,
+                "reason": "Sin compras abiertas",
+                "payment": "-"
             })
 
     for error in errors:
@@ -346,7 +361,7 @@ def main(args=None):
 
     # ICBC: V.MUEBLES
     bank_debit_builder_I.set_manual_cell("A2", "Prestación")
-    bank_debit_builder_I.set_manual_cell("B2", "V.MUEBLES")
+    bank_debit_builder_I.set_manual_cell("B2", "D MUEBLES")
 
     # CREDISUR
     bank_debit_builder_I.set_manual_cell("A3", "Ref del Débito")

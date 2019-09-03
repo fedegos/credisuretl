@@ -291,7 +291,8 @@ class AccountReceivable:
                 "customer": self.customer,
                 "address": self.address or 'Sin dirección',
                 "lastcollection": self.last_collection_date,
-                "reason": "Última cuota"
+                "reason": "Última cuota",
+                "payment": self.payment_amount
             }
 
             customers_in_last_payment.append(customer_details)
