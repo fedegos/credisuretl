@@ -61,10 +61,10 @@ def parse_line(line):
     importe_tercer_vencimiento = line[141:150]
     identificador_pagador_nuevo = line[151:172]
     codigo_rechazos = line[173:176]
-
-    if not tipo_de_novedad == "D":
+    
+    if tipo_de_novedad == "T":
         print(tipo_de_novedad)
-        return
+        return    
 
     return {
         'tipo_de_novedad': tipo_de_novedad,

@@ -37,6 +37,11 @@ class Bill:
             return
         '''
 
+        if self.sales_order == "NO":
+            self.skip = True
+            return
+
+
         if not self.sales_order:
             error = "Factura sin orden de compra. Documento: %s" % document
             self.append_error(errors, error)
