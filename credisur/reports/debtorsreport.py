@@ -43,7 +43,7 @@ class DebtorsReport:
         debtor['order'] = acct['order']
         debtor['last_collection'] = acct['last_collection']        
         debtor['plan'] = acct['plan']
-        debtor['due_payments'] = acct['missing_payments']
+        debtor['missing_payments'] = acct['missing_payments']
         debtor['payment'] = acct['payment']
         debtor['amount_to_collect'] = acct['amount_to_collect']
         debtor['full_description'] = acct['full_description']
