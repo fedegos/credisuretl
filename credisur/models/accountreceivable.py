@@ -83,6 +83,8 @@ class AccountReceivable:
         self.payment_amount = self.line_amount
         self.total_purchase_value = self.payment_amount * int(self.plan)
 
+        self.missing_payments = 0
+
         self.current_payment_description = str(self.current_payment_number)
 
     def _compute_actual_due_payment(self, bills, first_day_of_current_month, last_date_of_month):
@@ -106,6 +108,7 @@ class AccountReceivable:
             self.plan - i for i, v in enumerate(
             reversed(self.due_dates)) if v < first_day_of_current_month),
                             0)
+                            
         self.due_payments_with_current = next(
             (self.plan - i for i, v in enumerate(reversed(self.due_dates)) if v <= last_date_of_month), 0)
 
@@ -352,6 +355,9 @@ class AccountReceivable:
         account_to_collect['overdue_balance'] = self.overdue_balance
 
         account_to_collect['amount_to_collect'] = amount_to_collect
+
+        # Agregado para listado de morosos
+        account_to_collect['missing_payments'] = self.missing_payments
 
         account_to_collect['full_description'] = self.get_full_description()
 
