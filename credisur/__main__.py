@@ -17,7 +17,8 @@ from credisur.config import (
     get_advance_payments_columns,
     get_last_payment_columns,
     get_no_payment_due_columns,
-    get_bank_debit_columns)
+    get_bank_debit_columns,
+    get_debtors_columns)
 
 
 from credisur.extractors import (
@@ -26,6 +27,8 @@ from credisur.extractors import (
     bill_row_extractor, BillExtractorResults,
     account_receivable_extractor, AccountReceivableExtractorResults
 )
+
+from credisur.reports import (DebtorsReport)
 
 from credisur.debitsgenerator import generate_debits
 from credisur.bankparser import parse_bank_files
@@ -192,6 +195,10 @@ def main(args=None):
 
     account_receivable_results = acc_rec_extractor.extract()
     accounts_to_collect = account_receivable_results.get_accounts_to_collect()
+    
+    debtors_report = DebtorsReport()
+    debtors_list = debtors_report.generate_report(accounts_to_collect, customers)
+
     errors = errors + account_receivable_results.get_errors()
 
 
@@ -209,6 +216,7 @@ def main(args=None):
             )
         )
     )
+   
 
     for customername, customerdetails in customers.items():
         if not customername in collections_for_customers:
@@ -306,6 +314,9 @@ def main(args=None):
 
     collections_builder_I = excelbuilder.BasicBuilder(sorted_accounts_I, columns_config)
     collections_excelwriter.build_sheet('ICBC', collections_builder_I.build_sheet_data())
+
+    debtors_builder = excelbuilder.BasicBuilder(debtors_list, get_debtors_columns())
+    collections_excelwriter.build_sheet('Morosos', debtors_builder.build_sheet_data())
 
     bank_columns_config = get_bank_debit_columns()
 
