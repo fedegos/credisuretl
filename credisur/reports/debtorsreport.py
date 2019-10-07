@@ -2,14 +2,18 @@
 
 class DebtorsReport:
     
-    def generate_report(self, accounts_to_collect, customers):
+    def generate_report(self, accounts_to_collect, customers, first_day_of_last_month):
 
         result = self.build_result()
 
         for acct in [j for i in list(accounts_to_collect.values()) for j in i]: # aplanar el array de arrays        
             due_payments = acct['missing_payments']
+            last_collection_date = acct['last_collection_as_date']            
             
-            if due_payments >= 3 and acct['version'] == "nuevo":
+            if not acct['version'] == "nuevo":
+                continue
+
+            if self.is_debtor(due_payments, last_collection_date, first_day_of_last_month):
 
                 customer = self.get_account_customer(acct, customers)
 
@@ -24,8 +28,17 @@ class DebtorsReport:
         return customers[acct['customer']]
 
 
+    def is_debtor(self, due_payments, last_collection_date, first_day_of_last_month):
+        if due_payments >= 3:
+            return True
+        
+        if last_collection_date:
+            return last_collection_date < first_day_of_last_month
+
+        return False
+
     def build_result(self):
-        return list()
+        return list()    
 
 
     def build_debtor(self, acct, customer):
