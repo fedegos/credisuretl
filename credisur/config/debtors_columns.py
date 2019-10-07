@@ -20,4 +20,5 @@ def get_debtors_columns():
     config_list.append(("L", "Monto total a cobrar", 'amount_to_collect'))
     config_list.append(("M", "Descripción", 'full_description'))
     config_list.append(("N", "CBU", 'cbu'))
+    config_list.append(("O", "Tipo de Venta", 'collection_account'))
     return config_list

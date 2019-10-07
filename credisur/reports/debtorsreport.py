@@ -6,20 +6,22 @@ class DebtorsReport:
 
         result = self.build_result()
 
-        for acct in [j for i in list(accounts_to_collect.values()) for j in i]: # aplanar el array de arrays        
-            due_payments = acct['missing_payments']
-            last_collection_date = acct['last_collection_as_date']            
+        for collection_account, accounts in accounts_to_collect.items():
             
-            if not acct['version'] == "nuevo":
-                continue
+            for acct in accounts:
+                due_payments = acct['missing_payments']
+                last_collection_date = acct['last_collection_as_date']            
+                
+                if not acct['version'] == "nuevo":
+                    continue
 
-            if self.is_debtor(due_payments, last_collection_date, first_day_of_last_month):
+                if self.is_debtor(due_payments, last_collection_date, first_day_of_last_month):
 
-                customer = self.get_account_customer(acct, customers)
+                    customer = self.get_account_customer(acct, customers)
 
-                debtor = self.build_debtor(acct, customer)
-            
-                result.append(debtor)
+                    debtor = self.build_debtor(acct, customer, collection_account)
+                
+                    result.append(debtor)
 
         return result
 
@@ -41,7 +43,7 @@ class DebtorsReport:
         return list()    
 
 
-    def build_debtor(self, acct, customer):
+    def build_debtor(self, acct, customer, collection_account):
         # Ciudad	Cliente	Dirección	Teléfono	Fecha de Compra	Fecha de Vencimiento	
         # Orden de Compra	Última Cobranza	Cuotas	Cuotas a pagar	Valor de cuota	
         # Monto total a cobrar	Descripción	CBU
@@ -61,5 +63,6 @@ class DebtorsReport:
         debtor['amount_to_collect'] = acct['amount_to_collect']
         debtor['full_description'] = acct['full_description']
         debtor['cbu'] = customer['cbu']
+        debtor['collection_account'] = collection_account
 
         return debtor
