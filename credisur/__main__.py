@@ -107,6 +107,7 @@ def main(args=None):
     current_date = params.date or datetime.now()
     first_day_of_current_month = datetime(current_date.year, current_date.month, 1)
     last_date_of_month = calendar_ops.last_day_of_month(current_date)
+    first_day_of_last_month = calendar_ops.first_day_of_last_month(current_date)
 
     def get_old_excel_filename(filename):
         return filename[:-1]
@@ -197,7 +198,7 @@ def main(args=None):
     accounts_to_collect = account_receivable_results.get_accounts_to_collect()
     
     debtors_report = DebtorsReport()
-    debtors_list = debtors_report.generate_report(accounts_to_collect, customers)
+    debtors_list = debtors_report.generate_report(accounts_to_collect, customers, first_day_of_last_month)
 
     errors = errors + account_receivable_results.get_errors()
 

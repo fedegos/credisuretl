@@ -16,7 +16,10 @@ class AccountReceivable:
         self.past_due_debt = ""
         self.collections_for_order = []
         self.collections_for_customer = []
+
+        self.last_collection_as_a_date = None
         self.last_collection_date = "Sin cobranza previa"
+        
         self.current_payment_number = 1
 
         # inject calendar operations
@@ -61,11 +64,13 @@ class AccountReceivable:
             return
 
         if len(self.collections_for_customer) > 0:
-            self.last_collection_date = sorted(
+            self.last_collection_as_a_date = sorted(
                 self.collections_for_customer,
                 key=lambda x: x['date'],
                 reverse=True
-            )[0]['date'].strftime("%d/%m/%Y")
+            )[0]['date']
+
+            self.last_collection_date = self.last_collection_as_a_date.strftime("%d/%m/%Y")
             return
 
 
@@ -341,8 +346,10 @@ class AccountReceivable:
         account_to_collect['account'] = self.collection_account
         account_to_collect['person'] = self.collection_person
 
+
         account_to_collect['order'] = self.sales_order
 
+        account_to_collect['last_collection_as_date'] = self.last_collection_as_a_date
         account_to_collect['last_collection'] = self.last_collection_date
         account_to_collect['total_purchase_value'] = self.total_purchase_value
         account_to_collect['plan'] = self.plan

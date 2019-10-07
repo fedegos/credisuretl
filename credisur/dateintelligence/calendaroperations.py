@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-
+from dateutil.relativedelta import relativedelta
 
 class CalendarOperations:
     def add_months(self, since_date, months_to_add):
@@ -41,6 +41,10 @@ class CalendarOperations:
 
     def first_day_of_month(self, date_of_month=datetime.now()):
         return datetime(date_of_month.year, date_of_month.month, 1)
+
+    def first_day_of_last_month(self,date_of_month=datetime.now()):         
+        d = date_of_month - relativedelta(months=1)
+        return datetime(d.year, d.month, 1)
 
     def list_of_due_date(self, since_date, plan):
         return [self.add_months(since_date, x) for x in range(plan)]
