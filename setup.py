@@ -19,6 +19,8 @@ setup(name='credisuretl',
       },
       install_requires=[
             'openpyxl==2.4.7',
-            'xlrd'
+            'xlrd',
+            'time', 
+            'python-dateutil==2.8.0'
       ],
       zip_safe=False)
