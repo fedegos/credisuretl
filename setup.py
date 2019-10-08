@@ -21,10 +21,6 @@ setup(name='credisuretl',
             'openpyxl==2.4.7',
             'xlrd',
             'time', 
-<<<<<<< HEAD
             'python-dateutil==2.8.0'
-=======
-            'dateutil'
->>>>>>> master
       ],
       zip_safe=False)
